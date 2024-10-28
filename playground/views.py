@@ -13,9 +13,9 @@ def create_user(request):
         password = request.POST["password"]
         user = User.objects.create_user(username=username, password=password)
         user.save()
-        return HttpResponse(f'Usuário criado com sucesso')
+        return HttpResponse(status=200)
     except Exception as e:
-        return HttpResponse(f'Erro ao tentar criar o usuário {e}')
+        return HttpResponse(f"{e}",status=500)
 
 @csrf_exempt
 def login_user(request):
@@ -24,9 +24,11 @@ def login_user(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        return HttpResponse('Login efetuado com sucesso.');
+        request.session.save()
+        return HttpResponse(status=200)
     else:
-        return HttpResponse('Email ou senha incorretos.')
+        return HttpResponse("Username or password incorrect",status=500)
+
     
 
 @csrf_exempt
@@ -146,10 +148,21 @@ def get_all_pedido(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             try:
-                produtos = Produto.objects.values('nome', 'preco', 'estoque')
-                return JsonResponse(list(produtos), safe=False) 
+                pedidos = Pedido.objects.all()
+                pedidos_list = []
+                
+                for pedido in pedidos:
+                    pedido_dict = {
+                        'id': pedido.id,
+                        'nome_cliente': pedido.nome_cliente,
+                        'valor_total': str(pedido.valor_total), 
+                        'produtos': [produto.id for produto in pedido.produtos.all()] 
+                    }
+                    pedidos_list.append(pedido_dict)
+                
+                return JsonResponse(pedidos_list) 
             except Exception as e:
-                return HttpResponse('Falha ao tentar buscar os produtos')
+                return HttpResponse(f'Falha ao tentar buscar os pedidos {e}')
         else:
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
