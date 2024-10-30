@@ -10,14 +10,12 @@ export default function Login({ navigation }) {
     const [password, setPassword] = useState('');
 
     async function storeData(response){
-        console.log(response);
         const stringSession = String(response.headers);
         const sessionId = stringSession.split(/[,;]\s*/).filter(str => str.startsWith('sessionid='));
         if (sessionId && sessionId.length > 0)
         {
             try{
-                console.log(stringSession[0])
-                AsyncStorage.setItem('Cookie', stringSession[0])
+                AsyncStorage.setItem('Cookie', sessionId[0])
                 toast.show("Succefully log-in", {
                     type: "success",
                     placement: "top",
@@ -50,7 +48,7 @@ export default function Login({ navigation }) {
         dataLogin.append('username', username); 
         dataLogin.append('password', password);
         
-        api.post('playground/auth/login/', dataLogin, {
+        api.post('auth/login/', dataLogin, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded', 
             },

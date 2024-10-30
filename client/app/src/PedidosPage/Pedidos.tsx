@@ -1,21 +1,17 @@
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { useToast } from 'react-native-toast-notifications'
-import RenderCategorias from './RenderCategorias';
+import React from 'react'
 
-const Home = ({navigation}) => {
-  const toast = useToast();
-
+const Pedidos = () => {
   return (
     <SafeAreaView style={styles.container}>
         <View style={styles.content}>
-            <RenderCategorias navigation={navigation}/>
+            <Text style={styles.text}>Olá, de pedidos!</Text>
         </View>
     </SafeAreaView>
   )
 }
 
-export default Home
+export default Pedidos
 
 const styles = StyleSheet.create({
   container: {

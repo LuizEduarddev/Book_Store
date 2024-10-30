@@ -15,7 +15,7 @@ export default function Register({ navigation }) {
         dataLogin.append('username', username); 
         dataLogin.append('password', password);
         
-        api.post('playground/auth/login/', dataLogin, {
+        api.post('auth/login/', dataLogin, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded', 
             },
