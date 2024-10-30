@@ -44,8 +44,25 @@ def create_livro(request):
                 nome_autor = request.POST["nome_autor"]
                 data_lancamento = request.POST["data_lancamento"]
 
-                p = Livros(nome=nome_livro, preco=preco_livro, estoque=estoque_livro, isbn=isbn_livro,
-                           categoria=categoria, nome_autor=nome_autor, data_lancamento=data_lancamento)
+                CATEGORY_DICT = dict(CATEGORIES)
+                categoria_db = None
+                for key, value in CATEGORY_DICT.items():
+                    if value == categoria:
+                        categoria_db = key
+                        break
+
+                if categoria_db is None:
+                    return HttpResponse('Categoria não encontrada.', status=404)
+
+                p = Livros(
+                    nome=nome_livro,
+                    preco=preco_livro,
+                    estoque=estoque_livro,
+                    isbn=isbn_livro,
+                    categoria=categoria_db,
+                    nome_autor=nome_autor,
+                    data_lancamento=data_lancamento
+                )
                 p.save()
                 return HttpResponse(status=200)
             except Exception as e:
@@ -54,6 +71,7 @@ def create_livro(request):
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não permitido. Use POST.', status=405)
+
 
 @csrf_exempt
 def get_all_livros(request):

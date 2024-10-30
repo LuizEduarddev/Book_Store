@@ -7,8 +7,8 @@ class Livros(models.Model):
     nome = models.CharField(max_length=100)
     preco = models.DecimalField(max_digits=10, decimal_places=2)
     estoque = models.IntegerField()
-    isbn = models.CharField(max_length=10)
-    categoria = models.CharField(max_length=100, choices=CATEGORIES, unique=True)
+    isbn = models.CharField(max_length=10, unique=True)
+    categoria = models.CharField(max_length=100, choices=CATEGORIES)
     nome_autor = models.CharField(max_length=40)
     data_lancamento = models.CharField(max_length=10)
 

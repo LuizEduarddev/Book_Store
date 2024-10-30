@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import api from '../../ApiConfigs/ApiRoute'
@@ -44,27 +44,24 @@ const RenderCategorias = ({navigation}) => {
     }, []);
 
     const renderCategorias = () => {
-        if (categorias && categorias.length > 0)
-        {
-            return(
-                <View>
-                    <ScrollView>
-                        {categorias.map((categoria) => {
-                            return(
-                                <View key={categoria}>
-                                    <Pressable style={{borderColor:'black', borderWidth:1}}>
-                                        <Text>{categoria}</Text>
-                                        <RenderLivros navigation={navigation} categoria={categoria}/>
-                                    </Pressable>
-                                </View>
-                            );
-                        })}
-                    </ScrollView>
-                </View>
+        if (categorias && categorias.length > 0) {
+            return (
+                <FlatList
+                    data={categorias}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item: categoria }) => (
+                        <View>
+                            <Pressable>
+                                <Text>{categoria}</Text>
+                                <RenderLivros navigation={navigation} categoria={categoria} />
+                            </Pressable>
+                        </View>
+                    )}
+                    nestedScrollEnabled={true}
+                />
             );
-        }
-        else{
-            return(
+        } else {
+            return (
                 <View>
                     <Text>Nada para mostrar no momento....</Text>
                 </View>

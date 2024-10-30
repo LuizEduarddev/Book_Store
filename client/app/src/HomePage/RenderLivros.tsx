@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useToast } from 'react-native-toast-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,23 +42,24 @@ const RenderLivros = ({navigation, categoria}) => {
     const livrosList = () => {
         if (livros && livros.length > 0) {
             return (
-                <View>
-                    <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                        {livros.map((livro) => {
-                            return (
-                                <View key={livro.id} style={styles.livroItem}>
-                                    <Text style={styles.livroNome}>{livro.nome}</Text>
-                                    <Text>{livro.preco}</Text>
-                                    <Text>{livro.estoque}</Text>
-                                    <Text>{livro.isbn}</Text>
-                                    <Text>{livro.categoria}</Text>
-                                    <Text>{livro.nome_autor}</Text>
-                                    <Text>{livro.data_lancamento}</Text>
-                                </View>
-                            );
-                        })}
-                    </ScrollView>
-                </View>
+                <FlatList
+                    data={livros}
+                    horizontal={true}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item: livro }) => (
+                        <View key={livro.id} style={{ borderColor: 'black', borderWidth: 1 }}>
+                            <Text>{livro.nome}</Text>
+                            <Text>{livro.preco}</Text>
+                            <Text>{livro.estoque}</Text>
+                            <Text>{livro.isbn}</Text>
+                            <Text>{livro.categoria}</Text>
+                            <Text>{livro.nome_autor}</Text>
+                            <Text>{livro.data_lancamento}</Text>
+                        </View>
+                    )}
+                    showsHorizontalScrollIndicator={false}
+                    nestedScrollEnabled={true}
+                />
             );
         } else {
             return (
