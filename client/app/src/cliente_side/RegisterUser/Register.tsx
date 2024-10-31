@@ -1,48 +1,15 @@
 import { Text, TextInput, View, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../../ApiConfigs/ApiRoute";
+import api from "../../../ApiConfigs/ApiRoute";
 import { useToast } from 'react-native-toast-notifications'
-export default function Login({ navigation }) {
+export default function Register({ navigation }) {
     
     const toast = useToast();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    async function storeData(response){
-        const stringSession = String(response.headers);
-        const sessionId = stringSession.split(/[,;]\s*/).filter(str => str.startsWith('sessionid='));
-        if (sessionId && sessionId.length > 0)
-        {
-            try{
-                AsyncStorage.setItem('Cookie', sessionId[0])
-                toast.show("Succefully log-in", {
-                    type: "success",
-                    placement: "top",
-                    duration: 4000,
-                    animationType: "slide-in",
-                });
-                navigation.navigate("Home");
-            } catch (error) {
-                toast.show("Falha ao tentar salvar os dados da sessão", {
-                    type: "danger",
-                    placement: "top",
-                    duration: 4000,
-                    animationType: "slide-in",
-                });
-            }
-        }
-        else{
-            toast.show("Falha ao tentar salvar os dados da sessão", {
-                type: "danger",
-                placement: "top",
-                duration: 4000,
-                animationType: "slide-in",
-            });
-        }
-    }
-
-    async function tryLogin() {
+    async function tryRegister() {
         const dataLogin = new URLSearchParams(); 
     
         dataLogin.append('username', username); 
@@ -54,45 +21,31 @@ export default function Login({ navigation }) {
             },
         })
         .then(response => {
-            if (response.status === 200) storeData(response);
-            else{
-                toast.show("undetected error", {
-                    type: "danger",
-                    placement: "top",
-                    duration: 4000,
-                    animationType: "slide-in",
-                });  
-            }
-        })
-        .catch(error => {
-            if (error.response)
-            {
-                if (error.response.status === 500)
-                {
-                    toast.show("Incorrect password or username", {
-                        type: "warning",
-                        placement: "top",
-                        duration: 4000,
-                        animationType: "slide-in",
-                    }); 
-                }
-                else{
-                    toast.show("undetected error", {
-                        type: "danger",
-                        placement: "top",
-                        duration: 4000,
-                        animationType: "slide-in",
-                    });
-                }
-            }
-            else{
-                toast.show("Connection error", {
-                    type: "danger",
+            if (response.status === 200) {
+                navigation.navigate("Login");
+                toast.show("Succefully register", {
+                    type: "success",
                     placement: "top",
                     duration: 4000,
                     animationType: "slide-in",
                 });
             }
+            else{
+                toast.show("Error during register, try again later", {
+                    type: "warning",
+                    placement: "top",
+                    duration: 4000,
+                    animationType: "slide-in",
+                });    
+            }
+        })
+        .catch(error => {
+            toast.show("Error during register, try again later", {
+                type: "warning",
+                placement: "top",
+                duration: 4000,
+                animationType: "slide-in",
+            });
         })
     }
     
@@ -103,7 +56,7 @@ export default function Login({ navigation }) {
                 <View style={styles.box}>
                     <TextInput
                         style={styles.field}
-                        placeholder="Type your login"
+                        placeholder="Create your user"
                         placeholderTextColor={'white'}
                         value={username}
                         onChangeText={setUsername}
@@ -112,19 +65,15 @@ export default function Login({ navigation }) {
                     />
                     <TextInput
                         style={styles.field}
-                        placeholder="Type your password"
+                        placeholder="Create your password"
                         placeholderTextColor={'white'}
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry
                         autoCapitalize="none"
                     />
-                    <TouchableOpacity style={styles.buttonLogin} onPress={tryLogin}>
-                        <Text style={styles.textButtonLogin}>Log in</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.buttonForgot} onPress={() => navigation.navigate("Register")}>
-                        <Text style={styles.textButtonForgot}>Doesn't have an account yet?</Text>
+                    <TouchableOpacity style={styles.buttonLogin} onPress={tryRegister}>
+                        <Text style={styles.textButtonLogin}>Register</Text>
                     </TouchableOpacity>
                 </View>
             </View>

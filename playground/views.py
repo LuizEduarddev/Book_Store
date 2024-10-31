@@ -1,5 +1,4 @@
 import json
-from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
@@ -7,6 +6,7 @@ from django.contrib.auth import authenticate, login
 from .models import Pedidos, Livros, PedidoLivro
 from django.db import transaction
 from .utils.Categories import CATEGORIES
+from django.forms.models import model_to_dict
 
 @csrf_exempt
 def create_user(request):
@@ -104,6 +104,25 @@ def get_livros_usuarios(request):
             return HttpResponse(status=401)
     else:
         return HttpResponse(status=405)
+    
+@csrf_exempt
+def get_livro_by_id(request):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            try:
+                body = json.loads(request.body)
+                id = body.get('id')
+                livro = Livros.objects.get(id=id)
+
+                livro_data = model_to_dict(livro)
+
+                return JsonResponse(livro_data, status=200)
+            except Exception as e:
+                return HttpResponse(f'Falha ao tentar buscar o livro: {e}', status=400)
+        else:
+            return HttpResponse('Usuário não autenticado.', status=403)
+    else:
+        return HttpResponse('Método não suportado.', status=405)
 
 @csrf_exempt
 def get_livro_by_categoria(request):

@@ -10,6 +10,7 @@ urlpatterns = [
     path('livros/get-all/', views.get_all_livros),
     path('livros/get/', views.get_livros_usuarios),
     path('livros/get-by-categoria/', views.get_livro_by_categoria),
+    path('livros/get-by-id/', views.get_livro_by_id),
     path('livros/categorias/', views.get_categorias),
     path('pedidos/adicionar/', views.criar_pedido),
     path('pedidos/get-all/', views.get_all_pedido),

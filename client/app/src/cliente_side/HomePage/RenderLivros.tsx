@@ -1,8 +1,8 @@
-import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useToast } from 'react-native-toast-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../../ApiConfigs/ApiRoute';
+import api from '../../../ApiConfigs/ApiRoute';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const RenderLivros = ({navigation, categoria}) => {
@@ -48,13 +48,15 @@ const RenderLivros = ({navigation, categoria}) => {
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item: livro }) => (
                         <View key={livro.id} style={{ borderColor: 'black', borderWidth: 1 }}>
-                            <Text>{livro.nome}</Text>
-                            <Text>{livro.preco}</Text>
-                            <Text>{livro.estoque}</Text>
-                            <Text>{livro.isbn}</Text>
-                            <Text>{livro.categoria}</Text>
-                            <Text>{livro.nome_autor}</Text>
-                            <Text>{livro.data_lancamento}</Text>
+                            <Pressable onPress={() => navigation.navigate("LivroDetails", { id: livro.id })}>
+                                <Text>{livro.nome}</Text>
+                                <Text>{livro.preco}</Text>
+                                <Text>{livro.estoque}</Text>
+                                <Text>{livro.isbn}</Text>
+                                <Text>{livro.categoria}</Text>
+                                <Text>{livro.nome_autor}</Text>
+                                <Text>{livro.data_lancamento}</Text>
+                            </Pressable>
                         </View>
                     )}
                     showsHorizontalScrollIndicator={false}
@@ -69,6 +71,7 @@ const RenderLivros = ({navigation, categoria}) => {
             );
         }
     };
+
     
 
     return (

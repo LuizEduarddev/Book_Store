@@ -1,7 +1,7 @@
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import api from '../../ApiConfigs/ApiRoute'
+import api from '../../../ApiConfigs/ApiRoute'
 import { useToast } from 'react-native-toast-notifications'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import RenderLivros from './RenderLivros'
@@ -27,7 +27,6 @@ const RenderCategorias = ({navigation}) => {
             })
             .then(response => {
                 setCategorias(response.data);
-                console.log(response.data);
             })
             .catch(error => {
                 toast.show("Falha ao tentar buscar as categorias", {
