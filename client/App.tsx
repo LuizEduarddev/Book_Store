@@ -5,9 +5,9 @@ import Home from "./app/src/cliente_side/HomePage/Home";
 import { ToastProvider } from "react-native-toast-notifications";
 import Register from "./app/src/cliente_side/RegisterUser/Register";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Products from "./app/src/cliente_side/ProductsPage/Products";
 import Pedidos from "./app/src/cliente_side/PedidosPage/Pedidos";
 import LivroDetails from "./app/src/cliente_side/HomePage/LivroDetails";
+import Carrinho from "./app/src/cliente_side/CarrinhoPage/Carrinho";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -21,8 +21,8 @@ function BottomTabNavigator() {
         options={{ headerShown: false }} 
       />
       <Tab.Screen
-        name="Products"
-        component={Products}
+        name="Carrinho"
+        component={Carrinho}
         options={{ headerShown: false }} 
       />
       <Tab.Screen

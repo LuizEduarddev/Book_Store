@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from .utils.Categories import CATEGORIES
+from django.conf import settings
 
 class Livros(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -23,8 +24,8 @@ class Livros(models.Model):
 class Pedidos(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    nome_cliente = models.CharField(max_length=100)
-    livros = models.ManyToManyField(Livros, through='PedidoLivro')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False)
+    livros = models.ManyToManyField('Livros', through='PedidoLivro')
 
     class Meta:
         managed = True

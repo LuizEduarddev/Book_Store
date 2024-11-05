@@ -115,14 +115,25 @@ def get_livro_by_id(request):
                 livro = Livros.objects.get(id=id)
 
                 livro_data = model_to_dict(livro)
-
+                
+                livro_data['id'] = str(livro.id)
+                
+                for category_code, category_name in CATEGORIES:
+                    if livro_data['categoria'] == category_code:
+                        livro_data['categoria'] = category_name
+                        break
+                
                 return JsonResponse(livro_data, status=200)
+            except Livros.DoesNotExist:
+                return HttpResponse('Livro não encontrado.', status=404)
             except Exception as e:
                 return HttpResponse(f'Falha ao tentar buscar o livro: {e}', status=400)
         else:
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+
+
 
 @csrf_exempt
 def get_livro_by_categoria(request):
@@ -209,12 +220,11 @@ def criar_pedido(request):
         if request.user.is_authenticated:
             try:
                 data = json.loads(request.body)
-                nome_cliente = data.get("nome_cliente")
                 livros_info = data.get("livros")
                 total = 0
 
                 with transaction.atomic():
-                    pedido = Pedidos(valor_total=0, nome_cliente=nome_cliente)
+                    pedido = Pedidos(valor_total=0, user=request.user)  
                     pedido.save()
 
                     for item in livros_info:
