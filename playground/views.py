@@ -7,6 +7,7 @@ from .models import Pedidos, Livros, PedidoLivro
 from django.db import transaction
 from .utils.Categories import CATEGORIES
 from django.forms.models import model_to_dict
+from datetime import datetime
 
 @csrf_exempt
 def create_user(request):
@@ -152,7 +153,7 @@ def get_livro_by_categoria(request):
                 if categoria_db is None:
                     return HttpResponse('Categoria não encontrada.', status=404)
 
-                livros = Livros.objects.filter(categoria=categoria_db)
+                livros = Livros.objects.filter(categoria=categoria_db, estoque__gt=0)
 
                 livros_data = [
                     {
@@ -223,37 +224,53 @@ def criar_pedido(request):
                 livros_info = data.get("livros")
                 total = 0
 
+                current_date = datetime.now().strftime('%d/%m/%Y')
+                current_time = datetime.now().strftime('%H:%M')
+
                 with transaction.atomic():
-                    pedido = Pedidos(valor_total=0, user=request.user)  
+                    pedido = Pedidos(
+                        valor_total=0, 
+                        user=request.user, 
+                        data_pedido=current_date, 
+                        hora_pedido=current_time
+                    )
                     pedido.save()
 
-                    for item in livros_info:
-                        id_livros = item.get('id_livros')
-                        quantidade = item.get('quantidade')
-                        livro = Livros.objects.get(id=id_livros)
+                    try:
+                        for item in livros_info:
+                            id_livros = item.get('id_livros')
+                            quantidade = item.get('quantidade')
+                            livro = Livros.objects.get(id=id_livros)
 
-                        check_estoque = livro.estoque - quantidade
-                        if check_estoque < 0:
-                            return HttpResponse(f'{livro.nome} não possui estoque suficiente', status=400)
+                            check_estoque = livro.estoque - quantidade
+                            if check_estoque < 0:
+                                pedido.delete()
+                                return HttpResponse('Estoque insuficiente para o livro.', status=401)
 
-                        livro.estoque = check_estoque
-                        livro.save()
-                        livro_total = livro.preco * quantidade
-                        total += livro_total
+                            livro.estoque = check_estoque
+                            livro.save()
+                            livro_total = livro.preco * quantidade
+                            total += livro_total
 
-                        pedido_livro = PedidoLivro(pedido=pedido, livro=livro)
-                        pedido_livro.save()
+                            pedido_livro = PedidoLivro(pedido=pedido, livro=livro, quantidade=quantidade)
+                            pedido_livro.save()
 
-                    pedido.valor_total = total
-                    pedido.save()
+                        pedido.valor_total = total
+                        pedido.save()
 
-                return HttpResponse('Pedido criado com sucesso', status=200)
+                    except Exception as e:
+                        pedido.delete()
+                        return HttpResponse(f'Erro ao processar pedido: {e}', status=400)
+
+                return HttpResponse('Pedido criado com sucesso.', status=200)
+
             except Exception as e:
-                return HttpResponse(f'Falha ao tentar criar o pedido. {e}', status=400)
+                return HttpResponse(f'Erro geral: {e}', status=400)
         else:
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+
 
     
 @csrf_exempt
@@ -276,6 +293,41 @@ def get_all_pedido(request):
                 return JsonResponse(pedidos_list) 
             except Exception as e:
                 return HttpResponse(f'Falha ao tentar buscar os pedidos {e}')
+        else:
+            return HttpResponse('Usuário não autenticado.', status=403)
+    else:
+        return HttpResponse('Método não suportado.', status=405)
+    
+@csrf_exempt
+def get_pedido_by_user(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            try:
+                pedidos = Pedidos.objects.filter(user=request.user)
+                pedidos_list = []
+
+                for pedido in pedidos:
+                    livros_details = [
+                        {
+                            'id': str(pedido_livro.livro.id),
+                            'nome': pedido_livro.livro.nome,
+                            'preco': float(pedido_livro.livro.preco),
+                            'quantidade': pedido_livro.quantidade
+                        }
+                        for pedido_livro in PedidoLivro.objects.filter(pedido=pedido)
+                    ]
+
+                    pedidos_list.append({
+                        'id': str(pedido.id),
+                        'valorTotal': float(pedido.valor_total),
+                        'dataPedido': pedido.data_pedido, 
+                        'horaPedido': pedido.hora_pedido, 
+                        'livros': livros_details
+                    })
+
+                return JsonResponse(pedidos_list, safe=False)
+            except Exception as e:
+                return HttpResponse(f'Falha ao tentar buscar os pedidos: {e}', status=500)
         else:
             return HttpResponse('Usuário não autenticado.', status=403)
     else:

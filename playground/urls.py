@@ -14,4 +14,5 @@ urlpatterns = [
     path('livros/categorias/', views.get_categorias),
     path('pedidos/adicionar/', views.criar_pedido),
     path('pedidos/get-all/', views.get_all_pedido),
+    path('pedidos/get-by-user/', views.get_pedido_by_user),
 ]

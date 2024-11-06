@@ -100,9 +100,22 @@ const LivroDetails = ({ route, navigation }) => {
     }
   };
 
-  const incrementCounter = () => setCounter(prev => prev + 1);
+  const incrementCounter = () => {
+    if (livro && counter < livro.estoque)
+    {
+      setCounter(prev => prev + 1)
+    }
+    else{
+      toast.show("Estoque insuficiente", {
+        type: "warning",
+        placement: "top",
+        duration: 1000,
+        animationType: "slide-in",
+      });
+    }
+  };
   const decrementCounter = () => {
-    if (counter > 1) setCounter(prev => prev - 1); // Ensure counter doesn't go below 1
+    if (counter > 1) setCounter(prev => prev - 1); 
   };
 
   const renderLivro = () => {

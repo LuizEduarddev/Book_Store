@@ -26,6 +26,8 @@ class Pedidos(models.Model):
     valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False)
     livros = models.ManyToManyField('Livros', through='PedidoLivro')
+    data_pedido = models.CharField(max_length=100, default="")
+    hora_pedido = models.CharField(max_length=100, default="")
 
     class Meta:
         managed = True

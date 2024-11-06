@@ -91,7 +91,17 @@ const Carrinho = () => {
   
     const updatedCarrinho = carrinho.map(item => {
       if (item.idlivro === livro.id) {
-        return { ...item, quantidade: item.quantidade + 1 };
+        if (item.quantidade < livro.estoque) {
+          return { ...item, quantidade: item.quantidade + 1 };
+        } else {
+          toast.show("Estoque insuficiente", {
+            type: "warning",
+            placement: "top",
+            duration: 1000,
+            animationType: "slide-in",
+          });
+          return item; 
+        }
       }
       return item;
     });
@@ -100,10 +110,13 @@ const Carrinho = () => {
   
     setLivros(prevLivros => 
       prevLivros.map(item => 
-        item.id === livro.id ? { ...item, quantidade: item.quantidade + 1 } : item
+        item.id === livro.id && item.quantidade < livro.estoque
+          ? { ...item, quantidade: item.quantidade + 1 }
+          : item
       )
     );
   };
+  
 
   const deleteItem = async (livro) => {
     try
@@ -135,19 +148,73 @@ const Carrinho = () => {
 
   const tryFazerPedido = async () => {
     const carrinho = await getLivrosCarrinho();
-    if (carrinho && Array.isArray(carrinho) && carrinho.length > 0)
-    {
-      console.log(carrinho)
-    }
-    else{
-      toast.show("Falha ao fazer o pedido", {
+    if (carrinho && Array.isArray(carrinho) && carrinho.length > 0) {
+      const transformedData = {
+        livros: carrinho.map(item => ({
+          id_livros: item.idlivro, 
+          quantidade: item.quantidade,
+        }))
+      };
+      api.post('pedidos/adicionar/', transformedData)
+      .then(response => {
+        if (response.status === 200) {
+          try
+          {
+            AsyncStorage.removeItem('carrinho');
+            setLivros([]);
+            fetchLivros();
+            toast.show("Pedido criado com sucesso", {
+              type: "success",
+              placement: "top",
+              duration: 2000,
+              animationType: "slide-in",
+            });
+          }
+          catch(error)
+          {
+            toast.show("Pedido criado mas falha ao limpar o carrinho", {
+              type: "success",
+              placement: "top",
+              duration: 2000,
+              animationType: "slide-in",
+            });
+          }
+        }
+        else if (response.status === 401){
+          toast.show("Livro sem estoque", {
+            type: "warning",
+            placement: "top",
+            duration: 2000,
+            animationType: "slide-in",
+          }); 
+        }
+        else {
+          toast.show("Falha ao criar o pedido", {
+            type: "warning",
+            placement: "top",
+            duration: 2000,
+            animationType: "slide-in",
+          });
+        }
+      })
+      .catch(error => {
+        toast.show("Falha ao criar o pedido", {
+          type: "warning",
+          placement: "top",
+          duration: 2000,
+          animationType: "slide-in",
+        });
+      })
+    } else {
+      toast.show("Carrinho vazio. Não é possível fazer o pedido.", {
         type: "warning",
         placement: "top",
         duration: 2000,
         animationType: "slide-in",
       });
     }
-  }
+  };
+  
 
   const renderCarrinho = () => {
     if (livros && Array.isArray(livros) && livros.length > 0) {

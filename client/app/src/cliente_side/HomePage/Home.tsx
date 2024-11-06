@@ -8,9 +8,9 @@ const Home = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-            <RenderCategorias navigation={navigation}/>
-        </View>
+      <View style={styles.categoriesContainer}>
+        <RenderCategorias navigation={navigation} />
+      </View>
     </SafeAreaView>
   )
 }
@@ -19,16 +19,11 @@ export default Home
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,          
-    backgroundColor: '#fff',
+    flex: 1,
+    backgroundColor: '#ffffff',
   },
-  content: {
-    flex: 1,           
-    justifyContent: 'center',
-    alignItems: 'center',    
-    padding: 16,       
+  categoriesContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 20,
   },
-  text: {
-    fontSize: 18,
-  }
 })
