@@ -1,10 +1,8 @@
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { useToast } from 'react-native-toast-notifications'
+import { SafeAreaView, StyleSheet, View } from 'react-native'
+import React from 'react'
 import RenderCategorias from './RenderCategorias';
 
 const Home = ({navigation}) => {
-  const toast = useToast();
 
   return (
     <SafeAreaView style={styles.container}>

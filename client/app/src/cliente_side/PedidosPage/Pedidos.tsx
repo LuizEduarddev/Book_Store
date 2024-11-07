@@ -1,7 +1,8 @@
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, {useState} from 'react'
 import api from '../../../ApiConfigs/ApiRoute'
 import { useToast } from 'react-native-toast-notifications'
+import { useFocusEffect } from '@react-navigation/native';
 
 type Livros = {
   id: string,
@@ -23,7 +24,14 @@ const Pedidos = () => {
   const toast = useToast();
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
 
-  useEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
+      setPedidos([]);
+      fetchPedidos();
+    }, [])
+  );
+
+  const fetchPedidos = async () => {
     api.get('/pedidos/get-by-user/')
     .then(response => {
       if (response.status === 200)
@@ -47,7 +55,7 @@ const Pedidos = () => {
         animationType: "slide-in",
       });
     })
-  })
+  }
 
   const renderLivros = (pedido: Pedidos) => {
     if (pedido && pedido.livros.length > 0){

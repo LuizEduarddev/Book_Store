@@ -44,6 +44,7 @@ def create_livro(request):
                 categoria = request.POST["categoria"]
                 nome_autor = request.POST["nome_autor"]
                 data_lancamento = request.POST["data_lancamento"]
+                foto_livro = request.FILES.get("foto_livro")
 
                 CATEGORY_DICT = dict(CATEGORIES)
                 categoria_db = None
@@ -62,7 +63,8 @@ def create_livro(request):
                     isbn=isbn_livro,
                     categoria=categoria_db,
                     nome_autor=nome_autor,
-                    data_lancamento=data_lancamento
+                    data_lancamento=data_lancamento,
+                    foto_livro = foto_livro
                 )
                 p.save()
                 return HttpResponse(status=200)
@@ -119,6 +121,9 @@ def get_livro_by_id(request):
                 
                 livro_data['id'] = str(livro.id)
                 
+                if livro_data.get('foto_livro'):
+                    livro_data['foto_livro'] = request.build_absolute_uri(livro_data['foto_livro'].url)
+
                 for category_code, category_name in CATEGORIES:
                     if livro_data['categoria'] == category_code:
                         livro_data['categoria'] = category_name
@@ -133,6 +138,7 @@ def get_livro_by_id(request):
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+
 
 
 
@@ -164,6 +170,7 @@ def get_livro_by_categoria(request):
                         'isbn': livro.isbn,
                         'nome_autor': livro.nome_autor,
                         'data_lancamento': livro.data_lancamento,
+                        'imagem': request.build_absolute_uri(livro.foto_livro.url) 
                     }
                     for livro in livros
                 ]
@@ -174,6 +181,7 @@ def get_livro_by_categoria(request):
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+
 
 @csrf_exempt
 def update_livro(request):

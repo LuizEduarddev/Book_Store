@@ -12,6 +12,7 @@ class Livros(models.Model):
     categoria = models.CharField(max_length=100, choices=CATEGORIES)
     nome_autor = models.CharField(max_length=40)
     data_lancamento = models.CharField(max_length=10)
+    foto_livro = models.ImageField(null=False, blank=False)
 
     class Meta:
         managed = True

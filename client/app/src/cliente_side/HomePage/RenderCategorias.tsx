@@ -1,4 +1,4 @@
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import api from '../../../ApiConfigs/ApiRoute'
@@ -10,6 +10,7 @@ const RenderCategorias = ({navigation}) => {
     
     const toast = useToast();
     const [categorias, setCategorias] = useState([]);
+    const [isLoading, setIsLoading] = useState(true); 
 
     useEffect(() => {
         
@@ -27,6 +28,7 @@ const RenderCategorias = ({navigation}) => {
             })
             .then(response => {
                 setCategorias(response.data);
+                setIsLoading(false); 
             })
             .catch(error => {
                 toast.show("Falha ao tentar buscar as categorias", {
@@ -35,6 +37,7 @@ const RenderCategorias = ({navigation}) => {
                     duration: 4000,
                     animationType: "slide-in",
                 });
+                setIsLoading(false); 
             })
 
         };
@@ -43,29 +46,36 @@ const RenderCategorias = ({navigation}) => {
     }, []);
 
     const renderCategorias = () => {
-        if (categorias && categorias.length > 0) {
+        if (isLoading) {
             return (
-                <FlatList
-                    data={categorias}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item: categoria }) => (
-                        <View>
-                            <Pressable>
-                                <Text>{categoria}</Text>
-                                <RenderLivros navigation={navigation} categoria={categoria} />
-                            </Pressable>
-                        </View>
-                    )}
-                    nestedScrollEnabled={true}
-                />
-            );
-        } else {
-            return (
-                <View>
-                    <Text>Nada para mostrar no momento....</Text>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#0000ff" /> 
+                    <Text>Loading....</Text>
                 </View>
             );
         }
+
+        if (categorias && categorias.length > 0) {
+            return (
+              <FlatList
+                data={categorias}
+                keyExtractor={(item) => item}
+                renderItem={({ item: categoria }) => (
+                  <View style={{ marginVertical: 10 }}>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>{categoria}</Text>
+                    <RenderLivros navigation={navigation} categoria={categoria} />
+                  </View>
+                )}
+                nestedScrollEnabled={true}
+              />
+            );
+          } else {
+            return (
+              <View>
+                <Text>Nada para mostrar no momento....</Text>
+              </View>
+            );
+          }
     }
 
     return (
@@ -77,4 +87,10 @@ const RenderCategorias = ({navigation}) => {
 
 export default RenderCategorias
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+});

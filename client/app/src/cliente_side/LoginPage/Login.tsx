@@ -16,12 +16,6 @@ export default function Login({ navigation }) {
         {
             try{
                 AsyncStorage.setItem('Cookie', sessionId[0])
-                toast.show("Succefully log-in", {
-                    type: "success",
-                    placement: "top",
-                    duration: 4000,
-                    animationType: "slide-in",
-                });
                 navigation.navigate("Home");
             } catch (error) {
                 toast.show("Falha ao tentar salvar os dados da sessão", {
