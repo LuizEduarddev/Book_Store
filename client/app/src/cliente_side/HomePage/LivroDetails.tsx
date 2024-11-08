@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 20,
     left: 10,
-    backgroundColor: '#007BFF',
+    backgroundColor: 'orange',
     borderRadius: 50,
     padding: 10,
     zIndex: 10,
@@ -235,11 +235,11 @@ const styles = StyleSheet.create({
   bookPrice: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e90ff',
+    color: 'orange',
     marginBottom: 10,
   },
   addButton: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: 'orange',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 30,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   counterButton: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: 'orange',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 25,

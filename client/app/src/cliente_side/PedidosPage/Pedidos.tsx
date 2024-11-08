@@ -1,15 +1,18 @@
-import { SafeAreaView, StyleSheet, Text, View, Image, StatusBar } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Image, StatusBar, Pressable, FlatList, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import api from '../../../ApiConfigs/ApiRoute';
 import { useToast } from 'react-native-toast-notifications';
 import { useFocusEffect } from '@react-navigation/native';
+
+type LivroProp = { livro: Livros };
+type PedidoProp = { orders: Pedidos[] };
 
 type Livros = {
   id: string,
   nome: string,
   preco: number,
   quantidade: number,
-  imagemLivro:string
+  imagemLivro: string
 };
 
 type Pedidos = {
@@ -17,7 +20,7 @@ type Pedidos = {
   valorTotal: number,
   dataPedido: string,
   horaPedido: string,
-  statusPedido: boolean, 
+  statusPedido: boolean,
   livros: Livros[],
 };
 
@@ -31,6 +34,7 @@ function formatToBRL(number) {
 const Pedidos = () => {
   const toast = useToast();
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
+  const [activeTab, setActiveTab] = useState('On Shipping');
 
   useFocusEffect(
     React.useCallback(() => {
@@ -63,47 +67,74 @@ const Pedidos = () => {
       });
   };
 
-  const renderLivros = (livros: Livros[]) => {
-    return livros.map((livro) => (
-      <View key={livro.id} >
-        <Image source={{ uri: livro.imagemLivro}}  />
-        <View>
-          <Text>{livro.nome}</Text>
-          <Text>Quantidade: {livro.quantidade}</Text>
-        </View>
-        <View >
-          <Text >Total: {formatToBRL(livro.preco * livro.quantidade)}</Text>
-        </View>
+  const RenderLivros = ({ livro }: LivroProp) => (
+    <View style={styles.containerLivro}>
+      <Image source={{ uri: livro.imagemLivro }} style={styles.livroImagem} />
+      <View>
+        <Text style={styles.livroNome}>{livro.nome}</Text>
+        <Text style={styles.livroPreco}>{formatToBRL(livro.preco * livro.quantidade)} x {livro.quantidade}</Text>
       </View>
-    ));
-  };
+    </View>
+  );
 
-  const renderPedidos = () => {
-    if (pedidos && pedidos.length > 0) {
-      return pedidos.map((pedido) => (
-        <View key={pedido.id} style={styles.pedidosContainer}>
-          <View style={styles.pedidoTopInformartion}>
-            <Text>{pedido.dataPedido}</Text>
-            <Text>Status: {pedido.statusPedido ? 'Completo' : 'Pendente'}</Text>
+  const RenderPedidos = ({ orders }: PedidoProp) => (
+    <View>
+      {orders.map((pedido) => (
+        <View key={pedido.id} style={styles.pedidoContainer}>
+          <View style={styles.pedidoInformation}>
+            <View style={styles.pedidoTopInformation}>
+              <Text style={styles.statusText}>Ordered on {pedido.dataPedido}</Text>
+              <Text style={styles.statusText}>
+                {pedido.statusPedido ? 'Arrived' : 'In preparation'}
+              </Text>
+            </View>
+            <FlatList
+              data={pedido.livros}
+              horizontal
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => <RenderLivros livro={item} />}
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+            />
           </View>
-          {renderLivros(pedido.livros)}
-          <Text>Valor Total: {formatToBRL(pedido.valorTotal)}</Text>
+          <View style={styles.containerPrecoDetalhes}>
+            <Text style={styles.valorTotalText}>{formatToBRL(pedido.valorTotal)} ({pedido.livros.length} items)</Text>
+            <Pressable style={styles.buttomDetails}>
+              <Text style={styles.detailsText}>Details</Text>
+            </Pressable>
+          </View>
         </View>
-      ));
-    } else {
-      return (
-        <View >
-          <Text>Nenhum pedido ainda? :c</Text>
-        </View>
+      ))}
+    </View>
+  );
+
+  const renderTab = () => {
+    if (pedidos && pedidos.length > 0) {
+      const pedidosFilter = pedidos.filter((pedido) =>
+        activeTab === 'On Shipping' ? !pedido.statusPedido : activeTab === 'Arrived' ? pedido.statusPedido : false
       );
+      return pedidosFilter.length > 0 ? <RenderPedidos orders={pedidosFilter} /> : <Text style={styles.noDataText}>Nada para ser mostrado</Text>;
+    } else {
+      return <Text style={styles.noDataText}>Nenhum pedido ainda? :c</Text>;
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        {renderPedidos()}
+      <View style={styles.tabBar}>
+        {['On Shipping', 'Arrived', 'Cancelled'].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tabButton, activeTab === tab && styles.activeTab]}
+            onPress={() => setActiveTab(tab)}
+          >
+            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
+      <ScrollView style={{ flex: 1 }}>
+        {renderTab()}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -111,18 +142,107 @@ const Pedidos = () => {
 export default Pedidos;
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-    marginTop:StatusBar.currentHeight
+  container: {
+    flex: 1,
+    marginTop: StatusBar.currentHeight,
+    backgroundColor: '#f2f2f2'
   },
-  pedidosContainer:{
-    borderColor:'black',
-    borderWidth:1,
-    margin:10,
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    elevation: 2,
   },
-  pedidoTopInformartion:{
-    flexWrap:'wrap',
-    flexDirection:'row',
-    justifyContent:'space-between'
-  }
+  tabButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  activeTab: {
+    backgroundColor: 'orange',
+    elevation: 4,
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  activeTabText: {
+    color: 'white',
+  },
+  pedidoContainer: {
+    margin: 10,
+    borderColor: '#FFA500',
+    borderWidth: 1,
+    borderRadius: 15,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  pedidoInformation: {
+    margin: 10,
+    padding: 10,
+  },
+  pedidoTopInformation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statusText: {
+    color: '#FFA500',
+    fontWeight: '500',
+  },
+  containerLivro: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginVertical: 5,
+    marginHorizontal: '3%',
+    backgroundColor: '#FFA500',
+    borderRadius: 10,
+  },
+  containerPrecoDetalhes: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFA500',
+    padding: 10,
+    borderBottomEndRadius: 15,
+    borderBottomStartRadius: 15,
+  },
+  livroImagem: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  livroNome: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  livroPreco: {
+    color: 'white',
+  },
+  valorTotalText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  buttomDetails: {
+    backgroundColor: '#ff6b35',
+    borderRadius: 30,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+  },
+  detailsText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: '#8E8E93',
+    marginVertical: 20,
+  },
 });
