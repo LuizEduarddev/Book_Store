@@ -1,26 +1,34 @@
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native'
-import React, {useState} from 'react'
-import api from '../../../ApiConfigs/ApiRoute'
-import { useToast } from 'react-native-toast-notifications'
+import { SafeAreaView, StyleSheet, Text, View, Image, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import api from '../../../ApiConfigs/ApiRoute';
+import { useToast } from 'react-native-toast-notifications';
 import { useFocusEffect } from '@react-navigation/native';
 
 type Livros = {
   id: string,
-  nome: string
+  nome: string,
   preco: number,
-  quantidade: number
-}
+  quantidade: number,
+  imagemLivro:string
+};
 
 type Pedidos = {
   id: string,
-  valorTotalfloat: number,
-  dataPedido:string 
-  horaPedido:string, 
-  livros: Livros[]
+  valorTotal: number,
+  dataPedido: string,
+  horaPedido: string,
+  statusPedido: boolean, 
+  livros: Livros[],
+};
+
+function formatToBRL(number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(Number(number));
 }
 
 const Pedidos = () => {
-  
   const toast = useToast();
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
 
@@ -33,104 +41,88 @@ const Pedidos = () => {
 
   const fetchPedidos = async () => {
     api.get('/pedidos/get-by-user/')
-    .then(response => {
-      if (response.status === 200)
-      {
-        setPedidos(response.data);
-      }
-      else{
+      .then(response => {
+        if (response.status === 200) {
+          setPedidos(response.data);
+        } else {
+          toast.show("Falha ao tentar buscar os pedidos", {
+            type: "warning",
+            placement: "top",
+            duration: 1000,
+            animationType: "slide-in",
+          });
+        }
+      })
+      .catch(error => {
         toast.show("Falha ao tentar buscar os pedidos", {
           type: "warning",
           placement: "top",
           duration: 1000,
           animationType: "slide-in",
         });
-      }
-    })
-    .catch(error => {
-      toast.show("Falha ao tentar buscar os pedidos", {
-        type: "warning",
-        placement: "top",
-        duration: 1000,
-        animationType: "slide-in",
       });
-    })
-  }
+  };
 
-  const renderLivros = (pedido: Pedidos) => {
-    if (pedido && pedido.livros.length > 0){
-      return(
+  const renderLivros = (livros: Livros[]) => {
+    return livros.map((livro) => (
+      <View key={livro.id} >
+        <Image source={{ uri: livro.imagemLivro}}  />
         <View>
-          {pedido.livros.map((livro) => {
-            return(
-              <View key={livro.id}>
-                <Text>{livro.nome}</Text>
-                <Text>{livro.preco}</Text>
-                <Text>{livro.quantidade}</Text>
-              </View>
-            );
-          })}
+          <Text>{livro.nome}</Text>
+          <Text>Quantidade: {livro.quantidade}</Text>
         </View>
-      );
-    }
-    else{
-      return(
-        <View>
-          <Text>nenhum livro</Text>
+        <View >
+          <Text >Total: {formatToBRL(livro.preco * livro.quantidade)}</Text>
         </View>
-      );
-    }
-  }
-  
+      </View>
+    ));
+  };
+
   const renderPedidos = () => {
-    if (pedidos && pedidos.length > 0)
-    {
-      return(
-        <View>
-          {pedidos.map((pedido) => {
-            return(
-              <View key={pedido.id} style={{borderColor:'black', borderWidth:1}}>
-                <Text>{pedido.dataPedido} {pedido.horaPedido}</Text>
-                {renderLivros(pedido)}
-                <Text>{pedido.valorTotalfloat}</Text>
-              </View>
-            );
-          })}
+    if (pedidos && pedidos.length > 0) {
+      return pedidos.map((pedido) => (
+        <View key={pedido.id} style={styles.pedidosContainer}>
+          <View style={styles.pedidoTopInformartion}>
+            <Text>{pedido.dataPedido}</Text>
+            <Text>Status: {pedido.statusPedido ? 'Completo' : 'Pendente'}</Text>
+          </View>
+          {renderLivros(pedido.livros)}
+          <Text>Valor Total: {formatToBRL(pedido.valorTotal)}</Text>
         </View>
-      );
-    }
-    else{
-      return(
-        <View>
+      ));
+    } else {
+      return (
+        <View >
           <Text>Nenhum pedido ainda? :c</Text>
         </View>
       );
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-            {renderPedidos()}
-        </View>
+      <View>
+        {renderPedidos()}
+      </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Pedidos
+export default Pedidos;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,          
-    backgroundColor: '#fff',
+  container:{
+    flex:1,
+    marginTop:StatusBar.currentHeight
   },
-  content: {
-    flex: 1,           
-    justifyContent: 'center',
-    alignItems: 'center',    
-    padding: 16,       
+  pedidosContainer:{
+    borderColor:'black',
+    borderWidth:1,
+    margin:10,
   },
-  text: {
-    fontSize: 18,
+  pedidoTopInformartion:{
+    flexWrap:'wrap',
+    flexDirection:'row',
+    justifyContent:'space-between'
   }
-})
+});

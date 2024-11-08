@@ -320,7 +320,8 @@ def get_pedido_by_user(request):
                             'id': str(pedido_livro.livro.id),
                             'nome': pedido_livro.livro.nome,
                             'preco': float(pedido_livro.livro.preco),
-                            'quantidade': pedido_livro.quantidade
+                            'quantidade': pedido_livro.quantidade,
+                            'imagemLivro':request.build_absolute_uri(pedido_livro.livro.foto_livro.url)
                         }
                         for pedido_livro in PedidoLivro.objects.filter(pedido=pedido)
                     ]
@@ -330,6 +331,7 @@ def get_pedido_by_user(request):
                         'valorTotal': float(pedido.valor_total),
                         'dataPedido': pedido.data_pedido, 
                         'horaPedido': pedido.hora_pedido, 
+                        'statusPedido': pedido.status_pedido,
                         'livros': livros_details
                     })
 

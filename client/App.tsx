@@ -8,6 +8,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Pedidos from "./app/src/cliente_side/PedidosPage/Pedidos";
 import LivroDetails from "./app/src/cliente_side/HomePage/LivroDetails";
 import Carrinho from "./app/src/cliente_side/CarrinhoPage/Carrinho";
+import Icon from 'react-native-ico-shopping';
+import FontAwesone from 'react-native-vector-icons/FontAwesome6';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -18,17 +20,38 @@ function BottomTabNavigator() {
       <Tab.Screen
         name="TabHome"
         component={Home}
-        options={{ headerShown: false }} 
+        options={{ 
+          headerShown: false,
+          tabBarIcon: (tabInfo) => {
+            return(
+              <FontAwesone name="house" size={25}/>
+            );
+          }
+        }} 
       />
       <Tab.Screen
         name="Carrinho"
         component={Carrinho}
-        options={{ headerShown: false }} 
+        options={{ 
+          headerShown: false,
+          tabBarIcon: (tabInfo) => {
+            return(
+              <Icon name="shopping-cart" height="25" width="25" />
+            );
+          }
+        }} 
       />
       <Tab.Screen
         name="Pedidos"
         component={Pedidos}
-        options={{ headerShown: false }}
+        options={{ 
+          headerShown: false,
+          tabBarIcon: (tabInfo) => {
+            return(
+              <FontAwesone name="dolly" size={25}/>
+            );
+          }
+        }} 
       />
     </Tab.Navigator>
   );

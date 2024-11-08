@@ -98,7 +98,7 @@ export default function Login({ navigation }) {
                     <TextInput
                         style={styles.field}
                         placeholder="Type your login"
-                        placeholderTextColor={'white'}
+                        placeholderTextColor={'gray'}
                         value={username}
                         onChangeText={setUsername}
                         autoCapitalize="none"
@@ -107,7 +107,7 @@ export default function Login({ navigation }) {
                     <TextInput
                         style={styles.field}
                         placeholder="Type your password"
-                        placeholderTextColor={'white'}
+                        placeholderTextColor={'gray'}
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry
@@ -129,7 +129,7 @@ export default function Login({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212', // Dark background for the entire screen
+        backgroundColor: '#ffffff', // Dark background for the entire screen
         justifyContent: 'center', // Center vertically
         alignItems: 'center', // Center horizontally
     },
@@ -139,7 +139,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     box: {
-        backgroundColor: '#1E1E1E', // Slightly lighter black for the input box
+        borderColor:'#ff6a00',
+        borderWidth:1,
+        backgroundColor: '#ffffff', // Slightly lighter black for the input box
         borderRadius: 10,
         padding: 30,
         elevation: 5,
@@ -149,17 +151,17 @@ const styles = StyleSheet.create({
     field: {
         width: '100%',
         borderWidth: 1,
-        borderColor: 'white',
+        borderColor: 'orange',
         borderRadius: 10,
         marginVertical: 10,
         padding: 15,
         fontSize: 16,
-        color: 'white', 
-        backgroundColor: '#2B2B2B',
+        color: 'black', 
+        backgroundColor: 'white',
     },
     buttonLogin: {
         width: '100%',
-        backgroundColor: '#007BFF', // Bright blue for the login button
+        backgroundColor: 'orange',
         borderRadius: 10,
         padding: 15,
         marginVertical: 20,
@@ -175,7 +177,7 @@ const styles = StyleSheet.create({
     },
     textButtonForgot: {
         textAlign: 'center',
-        color: '#B0BEC5', // Light gray for "forgot password" text
+        color: 'black', 
         fontSize: 14,
     },
 });

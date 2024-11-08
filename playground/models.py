@@ -29,6 +29,8 @@ class Pedidos(models.Model):
     livros = models.ManyToManyField('Livros', through='PedidoLivro')
     data_pedido = models.CharField(max_length=100, default="")
     hora_pedido = models.CharField(max_length=100, default="")
+    status_pedido = models.BooleanField(default=False)
+    data_pedido_entregue = models.CharField(max_length=100, default="")
 
     class Meta:
         managed = True
