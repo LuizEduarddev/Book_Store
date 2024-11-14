@@ -1,7 +1,7 @@
 import { Text, TextInput, View, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../../../ApiConfigs/ApiRoute";
+import api from "../../ApiConfigs/ApiRoute";
 import { useToast } from 'react-native-toast-notifications'
 export default function Login({ navigation }) {
     
@@ -10,13 +10,23 @@ export default function Login({ navigation }) {
     const [password, setPassword] = useState('');
 
     async function storeData(response){
+        console.log(response.data);
         const stringSession = String(response.headers);
         const sessionId = stringSession.split(/[,;]\s*/).filter(str => str.startsWith('sessionid='));
         if (sessionId && sessionId.length > 0)
         {
             try{
                 AsyncStorage.setItem('Cookie', sessionId[0])
-                navigation.navigate("Home");
+                if (response.data === 'True') navigation.navigate("HomeAdmin");
+                else if (response.data === 'False') navigation.navigate("Home");
+                else {
+                    toast.show("Erro inesperado.", {
+                        type: "danger",
+                        placement: "top",
+                        duration: 4000,
+                        animationType: "slide-in",
+                    });
+                }
             } catch (error) {
                 toast.show("Falha ao tentar salvar os dados da sessão", {
                     type: "danger",

@@ -8,17 +8,38 @@ from django.db import transaction
 from .utils.Categories import CATEGORIES
 from django.forms.models import model_to_dict
 from datetime import datetime
+from django.contrib.auth.models import Group
 
 @csrf_exempt
 def create_user(request):
     try:
         username = request.POST["username"]
         password = request.POST["password"]
+
         user = User.objects.create_user(username=username, password=password)
+
         user.save()
+
         return HttpResponse(status=200)
     except Exception as e:
-        return HttpResponse(f"{e}",status=500)
+        return HttpResponse(f"Error: {e}", status=500)
+    
+@csrf_exempt
+def create_super_user(request):
+    if request.user.is_authenticated and request.user.is_staff == True:
+        try:
+            username = request.POST["username"]
+            password = request.POST["password"]
+
+            user = User.objects.create_superuser(username=username, password=password)
+            user.save()
+
+            return HttpResponse(status=200)
+        except Exception as e:
+            return HttpResponse(f"{e}",status=500)
+    else:
+        return HttpResponse(status=400)
+
 
 @csrf_exempt
 def login_user(request):
@@ -28,7 +49,7 @@ def login_user(request):
     if user is not None:
         login(request, user)
         request.session.save()
-        return HttpResponse("",status=200)
+        return HttpResponse(user.is_staff,status=200)
     else:
         return HttpResponse("Username or password incorrect",status=500)
 
@@ -280,11 +301,10 @@ def criar_pedido(request):
         return HttpResponse('Método não suportado.', status=405)
 
 
-    
 @csrf_exempt
 def get_all_pedido(request):
     if request.method == 'GET':
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff):
             try:
                 pedidos = Pedidos.objects.all()
                 pedidos_list = []
