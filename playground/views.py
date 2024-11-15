@@ -310,15 +310,28 @@ def get_all_pedido(request):
                 pedidos_list = []
                 
                 for pedido in pedidos:
-                    pedido_dict = {
-                        'id': pedido.id,
-                        'nome_cliente': pedido.nome_cliente,
-                        'valor_total': str(pedido.valor_total), 
-                        'livros': [livro.id for livro in pedido.livros.all()] 
-                    }
-                    pedidos_list.append(pedido_dict)
+                    livros_details = [
+                        {
+                            'id': str(pedido_livro.livro.id),
+                            'nome': pedido_livro.livro.nome,
+                            'preco': float(pedido_livro.livro.preco),
+                            'quantidade': pedido_livro.quantidade,
+                            'imagemLivro':request.build_absolute_uri(pedido_livro.livro.foto_livro.url)
+                        }
+                        for pedido_livro in PedidoLivro.objects.filter(pedido=pedido)
+                    ]
+
+                    pedidos_list.append({
+                        'id': str(pedido.id),
+                        'cliente':str(pedido.user.username),
+                        'valorTotal': float(pedido.valor_total),
+                        'dataPedido': pedido.data_pedido, 
+                        'horaPedido': pedido.hora_pedido, 
+                        'statusPedido': pedido.status_pedido,
+                        'livros': livros_details
+                    })
                 
-                return JsonResponse(pedidos_list) 
+                return JsonResponse(pedidos_list, safe=False) 
             except Exception as e:
                 return HttpResponse(f'Falha ao tentar buscar os pedidos {e}')
         else:

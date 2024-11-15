@@ -10,7 +10,6 @@ export default function Login({ navigation }) {
     const [password, setPassword] = useState('');
 
     async function storeData(response){
-        console.log(response.data);
         const stringSession = String(response.headers);
         const sessionId = stringSession.split(/[,;]\s*/).filter(str => str.startsWith('sessionid='));
         if (sessionId && sessionId.length > 0)

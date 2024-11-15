@@ -1,5 +1,5 @@
 import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import api from '../../../ApiConfigs/ApiRoute'
 import { useToast } from 'react-native-toast-notifications';
@@ -18,6 +18,7 @@ type Livros = {
 type Pedidos = {
   id: string,
   valorTotal: number,
+  cliente:string,
   dataPedido: string,
   horaPedido: string,
   statusPedido: boolean,
@@ -37,10 +38,15 @@ const HomeAdmin = () => {
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
   const [activeTab, setActiveTab] = useState('On Shipping');
 
+  useEffect(() => {
+    fetchPedidos();
+  }, [])
+
   const fetchPedidos = async () => {
     api.get('/pedidos/get-all/')
       .then(response => {
-        if (response.status === 200) {
+        console.log(response);
+        if (response.status === 200 && Array.isArray(response.data)) {
           setPedidos(response.data);
         } else {
           toast.show("Falha ao tentar buscar os pedidos", {
@@ -61,6 +67,14 @@ const HomeAdmin = () => {
       });
   }
 
+  /*
+  const RenderClientes = ({orders}: PedidoProp) => (
+    <View>
+      {orders.map((pedido.))}
+    </View>
+  );
+  */
+
   const RenderLivros = ({ livro }: LivroProp) => (
     <View style={styles.containerLivro}>
       <Image source={{ uri: livro.imagemLivro }} style={styles.livroImagem} />
@@ -77,7 +91,7 @@ const HomeAdmin = () => {
         <View key={pedido.id} style={styles.pedidoContainer}>
           <View style={styles.pedidoInformation}>
             <View style={styles.pedidoTopInformation}>
-              <Text style={styles.statusText}>Ordered on {pedido.dataPedido}</Text>
+              <Text style={styles.statusText}>Ordered on {pedido.dataPedido} by {pedido.cliente}</Text>
               <Text style={styles.statusText}>
                 {pedido.statusPedido ? 'Arrived' : 'In preparation'}
               </Text>
@@ -109,12 +123,12 @@ const HomeAdmin = () => {
       );
       return pedidosFilter.length > 0 ? <RenderPedidos orders={pedidosFilter} /> : <Text style={styles.noDataText}>Nada para ser mostrado</Text>;
     } else {
-      return <Text style={styles.noDataText}>Nenhum pedido ainda? :c</Text>;
+      return <Text style={styles.noDataText}>Looks like no one has order it. :c</Text>;
     }
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <View style={styles.tabBar}>
         {['On Shipping', 'Arrived', 'Cancelled'].map((tab) => (
           <TouchableOpacity
@@ -136,6 +150,9 @@ const HomeAdmin = () => {
 export default HomeAdmin
 
 const styles = StyleSheet.create({
+  container:{
+    flex:1
+  },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',

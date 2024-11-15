@@ -1,8 +1,9 @@
-import { SafeAreaView, StyleSheet, Text, View, Image, StatusBar, Pressable, FlatList, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Image, StatusBar, Pressable, FlatList, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import React, { useState } from 'react';
 import api from '../../../ApiConfigs/ApiRoute';
 import { useToast } from 'react-native-toast-notifications';
 import { useFocusEffect } from '@react-navigation/native';
+import ModalDetailsPedido from './ModalDetailsPedido';
 
 type LivroProp = { livro: Livros };
 type PedidoProp = { orders: Pedidos[] };
@@ -35,6 +36,7 @@ const Pedidos = () => {
   const toast = useToast();
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
   const [activeTab, setActiveTab] = useState('On Shipping');
+  const [modalDetails, setModalDetails] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -47,7 +49,7 @@ const Pedidos = () => {
     api.get('/pedidos/get-by-user/')
       .then(response => {
         if (response.status === 200) {
-          setPedidos(response.data);
+          if (Array.isArray(response.data)) setPedidos(response.data);
         } else {
           toast.show("Falha ao tentar buscar os pedidos", {
             type: "warning",
@@ -99,10 +101,26 @@ const Pedidos = () => {
           </View>
           <View style={styles.containerPrecoDetalhes}>
             <Text style={styles.valorTotalText}>{formatToBRL(pedido.valorTotal)} ({pedido.livros.length} items)</Text>
-            <Pressable style={styles.buttomDetails}>
+            <Pressable style={styles.buttomDetails} onPress={() => setModalDetails(true)}>
               <Text style={styles.detailsText}>Details</Text>
             </Pressable>
           </View>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalDetails}
+            onRequestClose={() => setModalDetails(false)}
+          >
+            <TouchableWithoutFeedback onPress={() => setModalDetails(false)}>
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback>
+                  <View style={styles.modalContent}>
+                    <ModalDetailsPedido />
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
         </View>
       ))}
     </View>
@@ -244,5 +262,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#8E8E93',
     marginVertical: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  },
+  modalContent: {
+      width: '90%',
+      backgroundColor: 'white',
+      borderRadius: 10,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: {
+          width: 0,
+          height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
   },
 });
