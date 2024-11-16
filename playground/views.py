@@ -375,6 +375,52 @@ def get_pedido_by_user(request):
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+
+@csrf_exempt
+def get_pedido_by_id(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            try:
+                pedido_id = request.GET.get('id', None)
+                if not pedido_id:
+                    return HttpResponse(status=400)
+                
+                pedido = Pedidos.objects.get(id=pedido_id)
+                if not pedido:
+                    return HttpResponse(status=400)
+
+                livros_details = [
+                    {
+                        'id': str(pedido_livro.livro.id),
+                        'nome': pedido_livro.livro.nome,
+                        'preco': float(pedido_livro.livro.preco),
+                        'quantidade': pedido_livro.quantidade,
+                        'imagemLivro':request.build_absolute_uri(pedido_livro.livro.foto_livro.url),
+                        'isbn':pedido_livro.livro.isbn,
+                        'nomeAutor': pedido_livro.livro.nome_autor
+                    }
+                    for pedido_livro in PedidoLivro.objects.filter(pedido=pedido)
+                ]
+
+                pedido_formatted = {
+                    'id': str(pedido.id),
+                    'valorTotal': float(pedido.valor_total),
+                    'dataPedido': pedido.data_pedido, 
+                    'horaPedido': pedido.hora_pedido, 
+                    'statusPedido': pedido.status_pedido,
+                    'livros': livros_details,
+                    'dataEntrega':pedido.data_pedido_entregue,
+                    'enderecoSaida':pedido.endereco_saida,
+                    'enderecoEntrega':pedido.endereco_entrega
+                }
+
+                return JsonResponse(pedido_formatted, safe=False)
+            except Exception as e:
+                return HttpResponse(f'Falha ao tentar buscar os pedidos: {e}', status=500)
+        else:
+            return HttpResponse('Usuário não autenticado.', status=403)
+    else:
+        return HttpResponse('Método não suportado.', status=405)
     
 @csrf_exempt
 def get_categorias(request):

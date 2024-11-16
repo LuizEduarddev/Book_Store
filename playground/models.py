@@ -27,10 +27,12 @@ class Pedidos(models.Model):
     valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False)
     livros = models.ManyToManyField('Livros', through='PedidoLivro')
-    data_pedido = models.CharField(max_length=100, default="")
-    hora_pedido = models.CharField(max_length=100, default="")
+    data_pedido = models.CharField(max_length=100)
+    hora_pedido = models.CharField(max_length=100)
     status_pedido = models.BooleanField(default=False)
-    data_pedido_entregue = models.CharField(max_length=100, default="")
+    data_pedido_entregue = models.CharField(max_length=100)
+    endereco_entrega = models.CharField(max_length=100, default="Roma, Italy")
+    endereco_saida = models.CharField(max_length=100, default="Brasilia, Brasil")
 
     class Meta:
         managed = True

@@ -15,4 +15,5 @@ urlpatterns = [
     path('pedidos/adicionar/', views.criar_pedido),
     path('pedidos/get-all/', views.get_all_pedido),
     path('pedidos/get-by-user/', views.get_pedido_by_user),
+    path('pedidos/get-by-id/', views.get_pedido_by_id),
 ]

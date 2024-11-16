@@ -11,6 +11,8 @@ import Carrinho from "./app/src/cliente_side/CarrinhoPage/Carrinho";
 import Icon from 'react-native-ico-shopping';
 import FontAwesone from 'react-native-vector-icons/FontAwesome6';
 import HomeAdmin from "./app/src/admin_side/home_admin/HomeAdmin";
+import PedidosNavigator from "./app/src/utils/PedidosNavigator";
+import DetailsPedido from "./app/src/cliente_side/PedidosPage/DetailsPedido";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,7 +46,7 @@ function BottomTabNavigator() {
       />
       <Tab.Screen
         name="Pedidos"
-        component={Pedidos}
+        component={PedidosNavigator}
         options={{ 
           headerShown: false,
           tabBarIcon: (tabInfo) => {
@@ -111,6 +113,7 @@ export default function App() {
           <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false }} />
           <Stack.Screen name="HomeAdmin" component={BottomTabNavigatorAdmin} options={{ headerShown: false }} />
           <Stack.Screen name="LivroDetails" component={LivroDetails} options={{ headerShown: false }} />
+          <Stack.Screen name="PedidoDetails" component={DetailsPedido} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </ToastProvider>

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import api from '../../../ApiConfigs/ApiRoute';
 import { useToast } from 'react-native-toast-notifications';
 import { useFocusEffect } from '@react-navigation/native';
-import ModalDetailsPedido from './ModalDetailsPedido';
 
 type LivroProp = { livro: Livros };
 type PedidoProp = { orders: Pedidos[] };
@@ -32,11 +31,10 @@ function formatToBRL(number) {
   }).format(Number(number));
 }
 
-const Pedidos = () => {
+const Pedidos = ({navigation}) => {
   const toast = useToast();
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
   const [activeTab, setActiveTab] = useState('On Shipping');
-  const [modalDetails, setModalDetails] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -101,26 +99,10 @@ const Pedidos = () => {
           </View>
           <View style={styles.containerPrecoDetalhes}>
             <Text style={styles.valorTotalText}>{formatToBRL(pedido.valorTotal)} ({pedido.livros.length} items)</Text>
-            <Pressable style={styles.buttomDetails} onPress={() => setModalDetails(true)}>
+            <Pressable style={styles.buttomDetails} onPress={() => navigation.navigate('PedidoDetails', { id: pedido.id })}>
               <Text style={styles.detailsText}>Details</Text>
             </Pressable>
           </View>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalDetails}
-            onRequestClose={() => setModalDetails(false)}
-          >
-            <TouchableWithoutFeedback onPress={() => setModalDetails(false)}>
-              <View style={styles.modalOverlay}>
-                <TouchableWithoutFeedback>
-                  <View style={styles.modalContent}>
-                    <ModalDetailsPedido />
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
         </View>
       ))}
     </View>
