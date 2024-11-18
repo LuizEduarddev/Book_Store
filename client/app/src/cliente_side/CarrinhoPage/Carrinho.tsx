@@ -62,12 +62,25 @@ const Carrinho = () => {
 
   const getLivrosCarrinho = async () => {
     const getCarrinho = await AsyncStorage.getItem('carrinho');
-    const carrinho = getCarrinho ? JSON.parse(getCarrinho) : [];
-    return carrinho.orders.map((item: CarrinhoItem) => ({
-      idlivro: item.idlivro,
-      quantidade: item.quantidade,
-    }));
+    
+    let carrinho;
+    try {
+      carrinho = getCarrinho ? JSON.parse(getCarrinho) : null;
+    } catch (error) {
+      console.error("Error parsing carrinho data:", error);
+      return []; 
+    }
+  
+    if (carrinho && Array.isArray(carrinho.orders)) {
+      return carrinho.orders.map((item: CarrinhoItem) => ({
+        idlivro: item.idlivro,
+        quantidade: item.quantidade,
+      }));
+    }
+  
+    return []; 
   };
+  
 
   const decrementCounter = async (livro) => {
     const carrinho = await getLivrosCarrinho();
@@ -244,8 +257,12 @@ const Carrinho = () => {
       );
     } else {
       return (
-        <View>
-          <Text>Você ainda não comprou nada? :c</Text>
+        <View style={styles.containerCarrinhoNulo}>
+          <Image
+            source={require('C:\\Users\\Luiz Eduardo Campos\\Documents\\Faculdade\\Roma_Tre\\Projeto_Final\\client\\app\\src\\cliente_side\\CarrinhoPage\\images\\womam.png')}
+            style={styles.image}
+          />
+          <Text style={styles.textCarrinhoVazio}>Carrinho vazio....</Text>
         </View>
       );
     }
@@ -287,6 +304,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
+  },
+  containerCarrinhoNulo:{
+    width:'100%',
+    height:'100%',
+    backgroundColor: '#e6dac7',
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  },
+  image: {
+    width: 300,
+    height: 300,
+  },
+  textCarrinhoVazio:{
+    marginTop: 20, // Adds some space between the image and the text
+    fontSize: 16, // Keeps the font size subtle
+    fontWeight: '500', // Slightly bold for readability
+    color: '#6D6B6B', // A soft gray tone to complement the grayscale image
+    fontStyle: 'italic', // Adds a playful touch
+    textAlign: 'center', // Centers the text
   },
   itemContainer: {
     flexDirection: 'row',

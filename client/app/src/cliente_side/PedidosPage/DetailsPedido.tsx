@@ -1,4 +1,4 @@
-import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Animated, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import api from '../../../ApiConfigs/ApiRoute';

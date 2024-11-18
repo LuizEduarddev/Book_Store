@@ -323,12 +323,14 @@ def get_all_pedido(request):
 
                     pedidos_list.append({
                         'id': str(pedido.id),
-                        'cliente':str(pedido.user.username),
                         'valorTotal': float(pedido.valor_total),
                         'dataPedido': pedido.data_pedido, 
                         'horaPedido': pedido.hora_pedido, 
                         'statusPedido': pedido.status_pedido,
-                        'livros': livros_details
+                        'livros': livros_details,
+                        'dataEntrega':pedido.data_pedido_entregue,
+                        'enderecoSaida':pedido.endereco_saida,
+                        'enderecoEntrega':pedido.endereco_entrega
                     })
                 
                 return JsonResponse(pedidos_list, safe=False) 
