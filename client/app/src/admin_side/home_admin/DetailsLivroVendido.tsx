@@ -4,6 +4,8 @@ import { useToast } from 'react-native-toast-notifications';
 import api from '../../../ApiConfigs/ApiRoute';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart } from "react-native-chart-kit";
+import { MaterialIcons } from '@expo/vector-icons';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
 interface Book {
   id: string;
@@ -34,6 +36,13 @@ interface BookOrderData {
   pedidos: Pedido[];
   total_earnings: string;
   total_books_sold: number;
+}
+
+function formatToBRL(number: string) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(Number(number));
 }
 
 const DetailsLivroVendido = ({ route, navigation }) => {
@@ -109,25 +118,36 @@ const DetailsLivroVendido = ({ route, navigation }) => {
               resizeMode="cover"
             />
           )}
+          <View style={{flexDirection:'column', justifyContent:'space-between'}}>
+            <Text>Título</Text>
+            <Text>Estoque</Text>
+            <Text>Data lançamento</Text>
+            <Text>ISBN</Text>
+            <Text>Preco</Text>
+            <Text>Nome autor</Text>
+          </View>
         <View style={styles.livroDataText}>
-          <Text>{pedidoData.book.nome}</Text>
-          <Text>{pedidoData.book.estoque}</Text>
-          <Text>{pedidoData.book.data_lancamento}</Text>
-          <Text>{pedidoData.book.isbn}</Text>
-          <Text>{pedidoData.book.preco}</Text>
-          <Text>{pedidoData.book.nome_autor}</Text>
+          <Text style={styles.livroData}>{pedidoData.book.nome}</Text>
+          <Text style={styles.livroData}>{pedidoData.book.estoque}</Text>
+          <Text style={styles.livroData}>{pedidoData.book.data_lancamento}</Text>
+          <Text style={styles.livroData}>{pedidoData.book.isbn}</Text>
+          <Text style={styles.livroData}>{formatToBRL(pedidoData.book.preco)}</Text>
+          <Text style={styles.livroData}>{pedidoData.book.nome_autor}</Text>
         </View>
       </View>
 
-      <View style={styles.livroSummary}>
-        <View>
-          <Text>{pedidoData.total_books_sold}</Text>
-          <Text>{pedidoData.book.nome} solded</Text>
+      <View style={styles.card}>
+        <View style={styles.iconContainer}>
+          <AttachMoneyIcon/>
         </View>
-        
-        <View>
-          <Text>{pedidoData.total_earnings}</Text>
-          <Text>Total earned</Text>
+        <Text style={styles.cardTitle}>Today Received</Text>
+        <Text style={styles.amount}>{formatToBRL(pedidoData.total_earnings)}</Text>
+        <View style={styles.footer}>
+          <View style={styles.footerLeft}>
+            <Text style={styles.percentage}>12%</Text>
+            <MaterialIcons name="arrow-upward" size={14} color="green" />
+          </View>
+          <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
         </View>
       </View>
 
@@ -183,22 +203,98 @@ export default DetailsLivroVendido
 
 const styles = StyleSheet.create({
   detailsContainer:{
-
+    alignItems:'center'
   },
   livroDataContainer:{
+    width:'95%',
     flexDirection:"row",
     borderRadius:15,
     justifyContent:'space-between',
-    padding:15
+    padding:15,
+    backgroundColor: '#F7F7F7', 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.25, 
+    shadowRadius: 3.84, 
+    elevation: 5
   },
-  livroDataText:{},
+  livroDataText:{
+    justifyContent:'space-between'
+  },
   livroSummary:{
-    flexDirection:"row"
+    flexDirection:"row",
+    justifyContent:'space-between',
+    width:'95%'
   },
   imagemLivro:{
     width:100,
     height:150,
     borderRadius:15,
     objectFit:'cover'
-  }
+  },
+  livroData:{
+    fontWeight:'900'
+  },
+  summaryData:{
+    backgroundColor:'orange',
+    borderRadius:15,
+    padding:15,
+    width:'45%',
+    marginTop:15,
+    alignItems:'center'
+  },
+  totalSummary:{
+    borderRadius:100,
+    padding:15,
+    backgroundColor:'white',
+    color:'orange'
+  },
+  totalText:{
+    
+  },
+  card: {
+    backgroundColor: '#12263F',
+    borderRadius: 15,
+    padding: 20,
+    width: 200,
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  iconContainer: {
+    backgroundColor: '#1E3A5B',
+    padding: 10,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    color: 'white',
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  amount: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  footer: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  percentage: {
+    color: 'green',
+    fontSize: 12,
+    marginRight: 5,
+  },
 })
