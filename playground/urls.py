@@ -12,6 +12,8 @@ urlpatterns = [
     path('livros/get-by-categoria/', views.get_livro_by_categoria),
     path('livros/get-by-id/', views.get_livro_by_id),
     path('livros/categorias/', views.get_categorias),
+    path('livros/vendidos/', views.get_all_sales_data),
+    path('livros/vendidos/detalhes', views.get_book_order_data),
     path('pedidos/adicionar/', views.criar_pedido),
     path('pedidos/get-all/', views.get_all_pedido),
     path('pedidos/get-by-user/', views.get_pedido_by_user),

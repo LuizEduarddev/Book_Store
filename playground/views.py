@@ -8,7 +8,8 @@ from django.db import transaction
 from .utils.Categories import CATEGORIES
 from django.forms.models import model_to_dict
 from datetime import datetime
-from django.contrib.auth.models import Group
+from django.db.models import Sum
+
 
 @csrf_exempt
 def create_user(request):
@@ -423,6 +424,106 @@ def get_pedido_by_id(request):
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+    
+@csrf_exempt
+def get_all_sales_data(request):
+    if request.method == 'GET' and request.user.is_authenticated and request.user.is_staff:
+            try:
+                livros = Livros.objects.all()
+
+                sales_data = []
+                for livro in livros:
+                    sales_count = PedidoLivro.objects.filter(livro=livro).aggregate(total=Sum('quantidade'))['total']
+                    sales_count = sales_count or 0  
+
+                    total_revenue = float(livro.preco) * sales_count
+
+                    sales_data.append({
+                        "id": str(livro.id),
+                        "nome": livro.nome,
+                        "preco": float(livro.preco),
+                        "quantidadeVendido": sales_count,
+                        "estoque": livro.estoque,
+                        "imagemLivro":request.build_absolute_uri(livro.foto_livro.url),
+                        "totalEarned":total_revenue,
+                    })
+
+                return JsonResponse(sales_data, safe=False, status=200)
+
+            except Exception as e:
+                return HttpResponse(f"Erro ao buscar os dados de venda. {e}", status=500)
+    else:
+        return HttpResponse("Usuário não autorizado.", status=403)
+    
+@csrf_exempt 
+def get_book_order_data(request):
+    if request.method == 'GET' and request.user.is_authenticated and request.user.is_staff:
+        book_id = request.headers.get('id')
+
+        if not book_id:
+            return JsonResponse({"error": "Book ID is required in the request header"}, status=400)
+
+        try:
+            # Try to retrieve the book using the given ID
+            book = Livros.objects.get(id=book_id)
+        except Livros.DoesNotExist:
+            return JsonResponse({"error": "Book not found"}, status=404)
+
+        # Query the Pedidos that contain this book
+        pedidos = Pedidos.objects.filter(livros=book)
+
+        if not pedidos.exists():
+            return JsonResponse({"message": "No orders found for this book"}, status=404)
+
+        # Variables to track total earnings and total quantity sold
+        total_earnings = 0
+        total_books_sold = 0
+
+        pedidos_data = []
+        for pedido in pedidos:
+            # Query for the specific 'PedidoLivro' entries that link the book and this order
+            pedido_livros = PedidoLivro.objects.filter(pedido=pedido, livro=book)
+            for pedido_livro in pedido_livros:
+                # Calculate the total earnings for this book in this order
+                total_earnings += book.preco * pedido_livro.quantidade
+                total_books_sold += pedido_livro.quantidade
+            
+            # Prepare the pedido data to include in the response
+            pedido_info = {
+                "pedido_id": pedido.id,
+                "valor_total": str(pedido.valor_total),
+                "data_pedido": pedido.data_pedido,
+                "hora_pedido": pedido.hora_pedido,
+                "status_pedido": pedido.status_pedido,
+                "data_pedido_entregue": pedido.data_pedido_entregue,
+                "endereco_entrega": pedido.endereco_entrega,
+                "endereco_saida": pedido.endereco_saida,
+                "quantidade": sum(pedido_livro.quantidade for pedido_livro in pedido_livros),
+            }
+            pedidos_data.append(pedido_info)
+
+        # Prepare the response with the book data, associated orders, total earnings, and total books sold
+        response_data = {
+            "book": {
+                "id": book.id,
+                "nome": book.nome,
+                "preco": str(book.preco),
+                "estoque": book.estoque,
+                "isbn": book.isbn,
+                "categoria": book.categoria,
+                "nome_autor": book.nome_autor,
+                "data_lancamento": book.data_lancamento,
+                "foto_livro": request.build_absolute_uri(book.foto_livro.url),
+            },
+            "pedidos": pedidos_data,
+            "total_earnings": str(total_earnings),  # Return total earnings as a string (for consistent formatting)
+            "total_books_sold": total_books_sold,
+        }
+
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse(status=400)
+
     
 @csrf_exempt
 def get_categorias(request):

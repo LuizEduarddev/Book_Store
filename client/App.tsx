@@ -13,6 +13,7 @@ import FontAwesone from 'react-native-vector-icons/FontAwesome6';
 import HomeAdmin from "./app/src/admin_side/home_admin/HomeAdmin";
 import PedidosNavigator from "./app/src/utils/PedidosNavigator";
 import DetailsPedido from "./app/src/cliente_side/PedidosPage/DetailsPedido";
+import DetailsLivroVendido from "./app/src/admin_side/home_admin/DetailsLivroVendido";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -64,7 +65,7 @@ function BottomTabNavigatorAdmin() {
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="TabHome"
+        name="Dashboard"
         component={HomeAdmin}
         options={{ 
           headerShown: false,
@@ -76,7 +77,7 @@ function BottomTabNavigatorAdmin() {
         }} 
       />
       <Tab.Screen
-        name="Carrinho"
+        name="não clicar"
         component={Carrinho}
         options={{ 
           headerShown: false,
@@ -88,7 +89,7 @@ function BottomTabNavigatorAdmin() {
         }} 
       />
       <Tab.Screen
-        name="Pedidos"
+        name="não clicar pf"
         component={Pedidos}
         options={{ 
           headerShown: false,
@@ -114,6 +115,7 @@ export default function App() {
           <Stack.Screen name="HomeAdmin" component={BottomTabNavigatorAdmin} options={{ headerShown: false }} />
           <Stack.Screen name="LivroDetails" component={LivroDetails} options={{ headerShown: false }} />
           <Stack.Screen name="PedidoDetails" component={DetailsPedido} options={{ headerShown: false }} />
+          <Stack.Screen name="LivroVendidoDetails" component={DetailsLivroVendido} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </ToastProvider>
