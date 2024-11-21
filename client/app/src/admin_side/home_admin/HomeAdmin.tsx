@@ -11,7 +11,8 @@ type Livros = {
   nome: string,
   preco: number,
   quantidade: number,
-  imagemLivro: string
+  imagemLivro: string,
+  categoria:string
 };
 
 type Pedidos = {

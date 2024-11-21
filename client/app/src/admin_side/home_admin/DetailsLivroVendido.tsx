@@ -1,11 +1,10 @@
-import { ActivityIndicator, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useToast } from 'react-native-toast-notifications';
 import api from '../../../ApiConfigs/ApiRoute';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LineChart } from "react-native-chart-kit";
-import { MaterialIcons } from '@expo/vector-icons';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import { BarChart, LineChart } from "react-native-chart-kit";
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 
 interface Book {
   id: string;
@@ -69,8 +68,14 @@ const DetailsLivroVendido = ({ route, navigation }) => {
       {
         try
         {
-          const labels = response.data.pedidos.map((pedido) => pedido.data_pedido); 
-          const quantities = response.data.pedidos.map((pedido) => Math.floor(pedido.quantidade));
+          const salesByDate = response.data.pedidos.reduce((acc, pedido) => {
+            const { data_pedido, quantidade } = pedido;
+            acc[data_pedido] = (acc[data_pedido] || 0) + Math.floor(quantidade); // Sum quantities for the same date
+            return acc;
+          }, {});
+    
+          const labels = Object.keys(salesByDate);
+          const quantities = Object.values(salesByDate);
           const dataGraph = {
             labels: labels,
             datasets: [
@@ -136,18 +141,41 @@ const DetailsLivroVendido = ({ route, navigation }) => {
         </View>
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.iconContainer}>
-          <AttachMoneyIcon/>
-        </View>
-        <Text style={styles.cardTitle}>Today Received</Text>
-        <Text style={styles.amount}>{formatToBRL(pedidoData.total_earnings)}</Text>
-        <View style={styles.footer}>
-          <View style={styles.footerLeft}>
-            <Text style={styles.percentage}>12%</Text>
-            <MaterialIcons name="arrow-upward" size={14} color="green" />
+      <View style={styles.cardContainer}>
+        <View style={styles.card}>
+          <View style={{flexDirection:'row', alignItems:'center'}}>
+            <View style={styles.iconContainer}>
+              <MaterialIcons name="attach-money" size={24} color="white" />
+            </View>
+            <Text>   </Text>
+            <View>
+              <Text style={styles.title}>Total</Text>
+              <Text style={styles.title}>Received</Text>
+            </View>
           </View>
-          <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
+          <Text style={styles.amount}>${pedidoData.total_earnings}</Text>
+          <View style={styles.percentageContainer}>
+            <Text style={styles.percentageText}>12%</Text>
+            <MaterialIcons name="arrow-upward" size={16} color="white" style={styles.arrowUpward}/>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <View style={{flexDirection:'row', alignItems:'center'}}>
+            <View style={styles.iconContainer}>
+              <FontAwesome name="book" size={24} color="white" />
+            </View>
+            <Text>   </Text>
+            <View>
+              <Text style={styles.title}>Quantity</Text>
+              <Text style={styles.title}>Sold</Text>
+            </View>
+          </View>
+          <Text style={styles.amount}>{pedidoData.total_books_sold}</Text>
+          <View style={styles.percentageContainer}>
+            <Text style={styles.percentageText}>6%</Text>
+            <MaterialIcons name="arrow-upward" size={16} color="white" style={styles.arrowUpward}/>
+          </View>
         </View>
       </View>
 
@@ -156,14 +184,14 @@ const DetailsLivroVendido = ({ route, navigation }) => {
           loadingChartData === false ? (
             <LineChart
               data={dataGraph}
-              width={Dimensions.get("window").width}
-              height={256}
+              width={Dimensions.get("window").width - 15 }
+              height={300}
               verticalLabelRotation={30}
               chartConfig={{
                 backgroundColor: "#e26a00",
                 backgroundGradientFrom: "#fb8c00",
                 backgroundGradientTo: "#ffa726",
-                decimalPlaces: 2,
+                decimalPlaces: 0, 
                 color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
                 labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
                 style: {
@@ -176,6 +204,10 @@ const DetailsLivroVendido = ({ route, navigation }) => {
                 }
               }}
               bezier
+              style={{
+                marginVertical: 8,
+                borderRadius: 16
+              }}
             />
           ):(
             <ActivityIndicator size="large" color="#6200EE" />
@@ -187,14 +219,25 @@ const DetailsLivroVendido = ({ route, navigation }) => {
 
   return (
     <SafeAreaView>
-      <View>
-        <Pressable onPress={() => navigation.goBack()} style={{backgroundColor:'blue', borderRadius:15, padding:10}}>
-          <Text style={{color:'white'}}>{'<'}- Voltar</Text>
-        </Pressable>
-        {pedidoData && (
-          <RenderPedidoDetails/>
-        )}
-      </View>
+      <ScrollView>
+        <View>
+          <Pressable onPress={() => navigation.goBack()} style={styles.buttonGoBack}>
+            <MaterialIcons name="arrow-back" size={16} color="orange" style={{backgroundColor:'white', padding:5, borderRadius:15}}/>
+            <Text style={{color:'black', marginLeft:5}}>go back</Text>
+          </Pressable>
+          <View style={styles.headerContainer}>
+            {pedidoData && (
+              <View style={{flexDirection:'row', alignSelf:'center'}}>
+                <Text>Hi there 👋. Here are the summary of</Text>
+                <Text style={{fontWeight:'900'}}> {pedidoData.book.nome}</Text>
+              </View>
+            )}
+          </View>
+          {pedidoData && (
+            <RenderPedidoDetails/>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -202,6 +245,21 @@ const DetailsLivroVendido = ({ route, navigation }) => {
 export default DetailsLivroVendido
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    marginTop:10,
+    backgroundColor: '#F7F7F7',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    padding: 10,
+    borderRadius: 15,
+    width: '95%',
+    alignSelf: 'center',
+    marginBottom: 10,
+    justifyContent: 'center', // Centers content vertically
+  },
   detailsContainer:{
     alignItems:'center'
   },
@@ -253,48 +311,61 @@ const styles = StyleSheet.create({
     
   },
   card: {
-    backgroundColor: '#12263F',
-    borderRadius: 15,
-    padding: 20,
-    width: 200,
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  iconContainer: {
-    backgroundColor: '#1E3A5B',
-    padding: 10,
+    marginTop: 8, // Reduced margin between cards
+    backgroundColor: '#FF9800',
+    borderRadius: 10, // Slightly smaller border radius
+    padding: 8, // Reduced padding
+    width: '46%', // Reduced width
+    elevation: 4, 
+},
+iconContainer: {
+    backgroundColor: '#F57C00',
     borderRadius: 50,
-    marginBottom: 10,
-  },
-  cardTitle: {
-    color: 'white',
-    fontSize: 14,
+    padding: 8, // Reduced icon container size
+    marginBottom: 8, // Reduced margin
+},
+  title: {
+    color: '#FFFFFF', 
+    fontSize: 16,
     marginBottom: 5,
   },
   amount: {
-    color: 'white',
-    fontSize: 24,
+    color: '#FFFFFF', 
+    fontSize: 28,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
-  footer: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  footerLeft: {
+  percentageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  percentage: {
-    color: 'green',
-    fontSize: 12,
-    marginRight: 5,
+  percentageText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    marginRight: 4,
+    fontWeight:'900',
+    textAlign:"center"
+  },
+  arrowUpward:{
+    backgroundColor: '#F57C00', 
+    borderRadius: 50,
+    padding:3
+  },
+  cardContainer:{
+    flexDirection:"row",
+    justifyContent:'space-between',
+    width:'95%'
+  },
+  buttonGoBack: {
+    marginLeft:5,
+    backgroundColor: '#F57C00',
+    borderRadius: 50,
+    paddingVertical: 10, // Adjusts top/bottom padding
+    paddingHorizontal: 15, // Adjusts left/right padding
+    flexDirection: 'row',
+    alignItems: 'center',
+    width:'40%'
   },
 })

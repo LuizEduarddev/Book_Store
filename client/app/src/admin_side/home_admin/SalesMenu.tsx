@@ -2,13 +2,16 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-notifications';
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import RenderProgressChart from './RenderProgressChart';
 
 type Livros = {
     id: string,
     nome: string,
     preco: number,
     quantidade: number,
-    imagemLivro: string
+    imagemLivro: string,
+    categoria:string
 };
 
 type Pedidos = {
@@ -22,6 +25,29 @@ type Pedidos = {
     enderecoEntrega:string,
     enderecoSaida:string
 };
+
+const calculateCategoryData = (pedidos: Pedidos[]) => {
+    const categoryMap: { [key: string]: number } = {};
+  
+    pedidos.forEach((pedido) => {
+      pedido.livros.forEach((livro) => {
+        const categoria = livro.categoria;
+        const quantidade = livro.quantidade;
+        console.log(livro.categoria);
+        if (categoryMap[categoria]) {
+          categoryMap[categoria] += quantidade;
+        } else {
+          categoryMap[categoria] = quantidade;
+        }
+      });
+    });
+  
+    const labels = Object.keys(categoryMap);
+    const data = Object.values(categoryMap);
+    console.log("labels" + labels);
+    console.log("data" + data);
+    return { labels, data };
+  };
 
 function formatToBRL(number: string) {
     return new Intl.NumberFormat('pt-BR', {
@@ -61,20 +87,47 @@ const SalesMenu = ({pedidos}:{pedidos:Pedidos[]}) => {
     useEffect(() => {
         fetchQuantidadePedidos();
         fetchTotalVendas();
+        console.log(pedidos);
     }, [])
 
     const renderMenu = () => {
         if (pedidos && pedidos.length > 0)
         {
             return(
-                <View style={styles.containerPedidos}>
-                    <View style={styles.salesDetails}>
-                        <Text style={styles.totalVenda}>{totalVendas}</Text>
-                        <Text style={{color:'white', fontWeight:'400'}}>Sales profit</Text>
+                <View style={styles.container}>
+                    <View style={styles.card}>
+                        <View style={{flexDirection:'row', alignItems:'center'}}>
+                            <View style={styles.iconContainer}>
+                                <FontAwesome name="book" size={24} color="white" />
+                            </View>
+                            <Text>   </Text>
+                            <View>
+                                <Text style={styles.title}>Quantity</Text>
+                                <Text style={styles.title}>Sold</Text>
+                            </View>
+                        </View>
+                        <Text style={styles.amount}>{quantidadePedidos}</Text>
+                        <View style={styles.percentageContainer}>
+                            <Text style={styles.percentageText}>6%</Text>
+                            <MaterialIcons name="arrow-upward" size={16} color="white" style={styles.arrowUpward}/>
+                        </View>
                     </View>
-                    <View style={styles.salesDetails}>
-                        <Text>{quantidadePedidos}</Text>
-                        <Text>Products selling</Text>
+                    <View style={styles.card}>
+                        <View style={{flexDirection:'row', alignItems:'center'}}>
+                            <View style={styles.iconContainer}>
+                                <FontAwesome name="book" size={24} color="white" />
+                            </View>
+                            <Text>   </Text>
+                            <View>
+                                <Text style={styles.title}>Total</Text>
+                                <Text style={styles.title}>Earned</Text>
+                            </View>
+                        </View>
+                        <Text style={styles.amount}>{totalVendas}</Text>
+                        <View style={styles.percentageContainer}>
+                            <Text style={styles.percentageText}>6%</Text>
+                            <MaterialIcons name="arrow-upward" size={16} color="white" style={styles.arrowUpward}/>
+                        </View>
                     </View>
                 </View>
             );
@@ -92,11 +145,16 @@ const SalesMenu = ({pedidos}:{pedidos:Pedidos[]}) => {
         <SafeAreaView>
             <View>
                 {pedidos && pedidos.length > 0 ? (
-                  <Text style={{color:'black', fontWeight:'700'}}>Here's happening in your sales last week 👋</Text>  
+                  <Text style={{marginLeft:8}}>Here's happening in your sales last week 👋</Text>  
                 ):(
                     <></>
                 )}
                 {renderMenu()}
+                {pedidos && pedidos.length > 0 ? (
+                    <RenderProgressChart data={calculateCategoryData(pedidos)}/>
+                ):(
+                    <></>
+                )}
             </View>
         </SafeAreaView>
     )
@@ -105,21 +163,81 @@ const SalesMenu = ({pedidos}:{pedidos:Pedidos[]}) => {
 export default SalesMenu
 
 const styles = StyleSheet.create({
-    containerPedidos:{
-        alignItems:'center',
-        flexDirection:'row'
+    container:{
+        flexDirection:'row',
+        justifyContent:"space-between",
+        width:'95%',
+        alignSelf:'center',
     },
-    salesDetails:{
+    summaryContainer:{
+        flexDirection:'row',
+        justifyContent:'space-between',
         backgroundColor:'orange',
-        borderRadius:15,
         padding:15,
-        width:'50%',
+        width:'95%',
+        alignSelf:'center',
+        marginTop:10,
+        borderRadius:15,
+        height:100,
         alignItems:'center'
     },
-    totalVenda:{
+    summaryProfit:{
+        backgroundColor:'#FF6F00',
+        padding:10,
         borderRadius:15,
-        backgroundColor:'white',
-        color:'orange',
-        padding:10
-    }
-})
+        width:'45%',
+        alignItems:'center'
+    },
+    labelText: {
+        fontSize: 14,
+        color: '#fff',
+    },
+    card: {
+        marginTop: 8, // Reduced margin between cards
+        backgroundColor: '#FF9800',
+        borderRadius: 10, // Slightly smaller border radius
+        padding: 8, // Reduced padding
+        width: '46%', // Reduced width
+        elevation: 4, 
+    },
+    iconContainer: {
+        backgroundColor: '#F57C00',
+        borderRadius: 50,
+        padding: 8, // Reduced icon container size
+        marginBottom: 8, // Reduced margin
+    },
+      title: {
+        color: '#FFFFFF', 
+        fontSize: 16,
+        marginBottom: 5,
+      },
+      amount: {
+        color: '#FFFFFF', 
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 10,
+      },
+      percentageContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+      },
+      percentageText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        marginRight: 4,
+        fontWeight:'900',
+        textAlign:"center"
+      },
+      arrowUpward:{
+        backgroundColor: '#F57C00', 
+        borderRadius: 50,
+        padding:3
+      },
+      cardContainer:{
+        flexDirection:"row",
+        justifyContent:'space-between',
+        width:'95%'
+      },
+})  

@@ -317,7 +317,8 @@ def get_all_pedido(request):
                             'nome': pedido_livro.livro.nome,
                             'preco': float(pedido_livro.livro.preco),
                             'quantidade': pedido_livro.quantidade,
-                            'imagemLivro':request.build_absolute_uri(pedido_livro.livro.foto_livro.url)
+                            'imagemLivro':request.build_absolute_uri(pedido_livro.livro.foto_livro.url),
+                            'categoria':pedido_livro.livro.categoria
                         }
                         for pedido_livro in PedidoLivro.objects.filter(pedido=pedido)
                     ]
