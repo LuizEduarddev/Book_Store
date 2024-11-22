@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-notifications';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import RenderProgressChart from './RenderProgressChart';
 
 type Livros = {
     id: string,
@@ -33,7 +32,7 @@ const calculateCategoryData = (pedidos: Pedidos[]) => {
       pedido.livros.forEach((livro) => {
         const categoria = livro.categoria;
         const quantidade = livro.quantidade;
-        console.log(livro.categoria);
+        (livro.categoria);
         if (categoryMap[categoria]) {
           categoryMap[categoria] += quantidade;
         } else {
@@ -44,8 +43,6 @@ const calculateCategoryData = (pedidos: Pedidos[]) => {
   
     const labels = Object.keys(categoryMap);
     const data = Object.values(categoryMap);
-    console.log("labels" + labels);
-    console.log("data" + data);
     return { labels, data };
   };
 
@@ -87,7 +84,6 @@ const SalesMenu = ({pedidos}:{pedidos:Pedidos[]}) => {
     useEffect(() => {
         fetchQuantidadePedidos();
         fetchTotalVendas();
-        console.log(pedidos);
     }, [])
 
     const renderMenu = () => {
@@ -145,16 +141,13 @@ const SalesMenu = ({pedidos}:{pedidos:Pedidos[]}) => {
         <SafeAreaView>
             <View>
                 {pedidos && pedidos.length > 0 ? (
-                  <Text style={{marginLeft:8}}>Here's happening in your sales last week 👋</Text>  
+                    <View style={styles.headerContainer}>
+                        <Text style={{marginLeft:8}}>Here's happening in your sales last week 👋</Text>  
+                    </View>
                 ):(
                     <></>
                 )}
                 {renderMenu()}
-                {pedidos && pedidos.length > 0 ? (
-                    <RenderProgressChart data={calculateCategoryData(pedidos)}/>
-                ):(
-                    <></>
-                )}
             </View>
         </SafeAreaView>
     )
@@ -213,7 +206,7 @@ const styles = StyleSheet.create({
       },
       amount: {
         color: '#FFFFFF', 
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: 'bold',
         marginBottom: 10,
       },
@@ -240,4 +233,21 @@ const styles = StyleSheet.create({
         justifyContent:'space-between',
         width:'95%'
       },
+      headerContainer:{
+        borderColor:"orange",
+        borderWidth:1,
+        marginTop:10,
+        backgroundColor: '#F7F7F7',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        padding: 10,
+        borderRadius: 15,
+        width: '95%',
+        alignSelf: 'center',
+        marginBottom: 10,
+        justifyContent: 'center', 
+      }
 })  

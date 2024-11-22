@@ -14,6 +14,8 @@ import HomeAdmin from "./app/src/admin_side/home_admin/HomeAdmin";
 import PedidosNavigator from "./app/src/utils/PedidosNavigator";
 import DetailsPedido from "./app/src/cliente_side/PedidosPage/DetailsPedido";
 import DetailsLivroVendido from "./app/src/admin_side/home_admin/DetailsLivroVendido";
+import EstoqueLivros from "./app/src/admin_side/Estoque/EstoqueLivros";
+import EditLivro from "./app/src/admin_side/Estoque/EditLivro";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -77,8 +79,8 @@ function BottomTabNavigatorAdmin() {
         }} 
       />
       <Tab.Screen
-        name="não clicar"
-        component={Carrinho}
+        name="Estoque"
+        component={EstoqueLivros}
         options={{ 
           headerShown: false,
           tabBarIcon: (tabInfo) => {
@@ -116,6 +118,8 @@ export default function App() {
           <Stack.Screen name="LivroDetails" component={LivroDetails} options={{ headerShown: false }} />
           <Stack.Screen name="PedidoDetails" component={DetailsPedido} options={{ headerShown: false }} />
           <Stack.Screen name="LivroVendidoDetails" component={DetailsLivroVendido} options={{ headerShown: false }} />
+          <Stack.Screen name="Estoque" component={EstoqueLivros} options={{ headerShown: false }} />
+          <Stack.Screen name="EditLivro" component={EditLivro} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </ToastProvider>

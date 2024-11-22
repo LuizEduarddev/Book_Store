@@ -15,10 +15,11 @@ type Livros = {
     totalEarned:number,
 };
 
-const TabelaMaisVendidos = ({navigation}) => {
-  
+const TabelaMaisVendidos = ({navigation, from}) => {
+    
     const toast = useToast();
     const [livros, setLivros] = useState<Livros[]>();
+    const origin = from ? from : ""
     
     useEffect(() => {
         fetchPedidos();
@@ -45,21 +46,37 @@ const TabelaMaisVendidos = ({navigation}) => {
             const sortedLivros = [...livros].sort((a, b) => b.quantidadeVendido - a.quantidadeVendido);
 
             return (
-            <View>
-              <View style={styles.tableHeader}>
-                <Text style={styles.headerText}></Text>
-                <Text style={styles.headerText}>Name</Text>
-                <Text style={styles.headerText}>Stock</Text>
-                <Text style={styles.headerText}>Price</Text>
-                <Text style={styles.headerText}>Sold</Text>
-                <Text style={styles.headerText}>Earnings</Text>
-              </View>
+            <View style={styles.tableContainer}>
+                {origin === 'home' ? (
+                    <Text>Top selling products</Text>
+                ):(
+                    <Text>Estoque</Text>
+                )}
+                <View style={styles.tableHeader}>
+                    <Text style={styles.headerText}></Text>
+                    <Text style={styles.headerText}>Name</Text>
+                    <Text style={styles.headerText}>Stock</Text>
+                    <Text style={styles.headerText}>Price</Text>
+                    <Text style={styles.headerText}>Sold</Text>
+                    <Text style={styles.headerText}>Earnings</Text>
+                </View>
       
               <FlatList
                 data={sortedLivros}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item: livro }) => (
-                    <Pressable style={styles.tableRow} onPress={() => navigation.navigate('LivroVendidoDetails', { id: livro.id })}>
+                    <Pressable style={styles.tableRow} onPress={() => {
+                        if (from === 'home') navigation.navigate('LivroVendidoDetails', { id: livro.id });
+                        else if (from === 'estoque') navigation.navigate('EditLivro', {id: livro.id})
+                        else {
+                            toast.show("Falha não identificada", {
+                                type: "warning",
+                                placement: "top",
+                                duration: 4000,
+                                animationType: "slide-in",
+                            });
+                        }
+                        }}>
                         <View style={styles.imageContainer}>
                         {livro.imagemLivro && (
                             <Image
@@ -90,7 +107,6 @@ const TabelaMaisVendidos = ({navigation}) => {
     return (
         <SafeAreaView>
             <View>
-                <Text>Top selling products</Text>
                 {renderTableVendas()}
             </View>
         </SafeAreaView>
@@ -100,7 +116,24 @@ const TabelaMaisVendidos = ({navigation}) => {
 export default TabelaMaisVendidos
 
 const styles = StyleSheet.create({
+    tableContainer:{
+        backgroundColor: '#F7F7F7',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        padding: 10,
+        borderRadius: 15,
+        width: '95%',
+        alignSelf: 'center',
+        marginBottom: 10,
+        justifyContent: 'center',
+        borderColor:'orange',
+        borderWidth:1 
+    },
     tableHeader: {
+        width:'100%',
         flexDirection: "row",
         justifyContent: "space-around",
         paddingVertical: 10,
@@ -127,7 +160,7 @@ const styles = StyleSheet.create({
     },
     headerText: {
         fontWeight: "bold",
-        fontSize: 14,
+        fontSize: 12,
         flex: 1,
         textAlign: "center",
     },

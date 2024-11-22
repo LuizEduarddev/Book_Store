@@ -62,7 +62,7 @@ const HomeAdmin = ({navigation}) => {
         pedidos && <SalesMenu pedidos={pedidos} />
         
       )}
-      <TabelaMaisVendidos navigation={navigation}/>
+      <TabelaMaisVendidos navigation={navigation} from={"home"}/>
     </SafeAreaView>
   );
 };

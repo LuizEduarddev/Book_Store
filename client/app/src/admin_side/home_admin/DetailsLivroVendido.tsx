@@ -89,7 +89,7 @@ const DetailsLivroVendido = ({ route, navigation }) => {
         }
         catch(error)
         {
-          console.log(error);
+          (error);
           toast.show('Falha ao renderizar o gráfico', {
             type: 'warning',
             placement: 'top',

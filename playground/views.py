@@ -103,8 +103,21 @@ def get_all_livros(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             try:
-                livros = Livros.objects.values('nome', 'preco', 'estoque', 'isbn', 'categoria', 'nome_autor', 'data_lancamento')
-                return JsonResponse(list(livros), safe=False) 
+                livros = Livros.objects.all()
+                livros_data = [
+                    {
+                        'id': str(livro.id),
+                        'nome': livro.nome,
+                        'preco': str(livro.preco),
+                        'estoque': livro.estoque,
+                        'isbn': livro.isbn,
+                        'nome_autor': livro.nome_autor,
+                        'data_lancamento': livro.data_lancamento,
+                        'imagem': request.build_absolute_uri(livro.foto_livro.url) 
+                    }
+                    for livro in livros
+                ]
+                return JsonResponse(livros_data, safe=False, status=200)
             except Exception as e:
                 return HttpResponse('Falha ao tentar buscar os pedidos')
         else:
