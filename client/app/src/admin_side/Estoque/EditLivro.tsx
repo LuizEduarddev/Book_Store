@@ -1,4 +1,4 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../../ApiConfigs/ApiRoute';
@@ -54,7 +54,6 @@ const EditLivro = ({ navigation, route }) => {
   const [dataLancamento, setDataLancamento] = useState('');
   const [fotoLivro, setFotoLivro] = useState('');
   
-  // State to control DatePicker modal
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [modal, setModal] = useState(false);
 
@@ -134,7 +133,7 @@ const EditLivro = ({ navigation, route }) => {
               placeholderTextColor={'gray'}
               value={estoque.toString()}
               onChangeText={(text) => setEstoque(Number(text))}
-              keyboardType="numeric" // Numeric keyboard for estoque
+              keyboardType="numeric" 
             />
           </View>
           <View style={styles.inputContainer}>
@@ -145,7 +144,7 @@ const EditLivro = ({ navigation, route }) => {
               placeholderTextColor={'gray'}
               value={preco}
               onChangeText={setPreco}
-              keyboardType="numeric" // Numeric keyboard for price
+              keyboardType="numeric" 
             />
           </View>
           <View style={styles.inputContainer}>
@@ -156,7 +155,7 @@ const EditLivro = ({ navigation, route }) => {
               placeholderTextColor={'gray'}
               value={isbn}
               onChangeText={setIsbn}
-              keyboardType="numeric" // Numeric keyboard for ISBN
+              keyboardType="numeric" 
             />
           </View>
           <View style={styles.inputContainer}>
@@ -196,8 +195,29 @@ const EditLivro = ({ navigation, route }) => {
           <Pressable style={styles.updateButton} onPress={() => setModal(true)}>
             <Text style={{ fontSize: 16, color: 'white' }}>Save updates</Text>
           </Pressable>
+        
+          <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modal}
+              onRequestClose={() => setModal(false)}
+          >
+              <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                    <Text>Confirma alteração de pedido?</Text>
+                    <View style={styles.modalButtons}>
+                      <Pressable style={styles.buttonConfirm}>
+                        <Text style={styles.textButton}>Sim</Text>
+                      </Pressable>
+                      <Pressable style={styles.buttonDeny}>
+                        <Text style={styles.textButton}>Não</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+              </View>
+          </Modal>
+        
 
-          {/* Date Picker Modal */}
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
@@ -288,4 +308,41 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'white',
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems:'center'
+  },
+  modalButtons:{
+    marginTop:10,
+    flexDirection:'row',
+    justifyContent:'space-between',
+    width:'100%',
+  },
+  buttonConfirm:{
+    backgroundColor:'green',
+    borderRadius:15,
+    padding:10,
+    width:'45%',
+    alignItems:'center'
+  },
+  textButton:{
+    fontSize:14,
+    color:'white'
+  },
+  buttonDeny:{
+    backgroundColor:'red',
+    borderRadius:15,
+    padding:10,
+    width:'45%',
+    alignItems:'center'
+  }
 });

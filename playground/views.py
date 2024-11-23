@@ -230,6 +230,8 @@ def update_livro(request):
                 estoque_livro = request.POST["estoque_livro"]
                 isbn = request.POST["isbn"]
                 categoria_nome = request.POST["categoria"]
+                categoria_nome = request.POST["categoria"]
+                categoria_nome = request.POST["categoria"]
                 new_livro.nome = nome_livro
                 new_livro.preco = preco_livro
                 new_livro.estoque = estoque_livro
