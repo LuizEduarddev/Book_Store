@@ -5,8 +5,7 @@ import api from '../../../ApiConfigs/ApiRoute';
 import { useToast } from 'react-native-toast-notifications';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { launchImageLibrary } from 'react-native-image-picker'; 
-import { PermissionsAndroid } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 function formatToBRL(number: string) {
   return new Intl.NumberFormat('pt-BR', {
@@ -42,59 +41,74 @@ const CriarLivro = ({ navigation}) => {
   
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [modal, setModal] = useState(false);
-
-  const tryEditarProduto = async () => {
-    const data = {
-      nomeLivro:nomeLivro,
-      precoLivro:preco,
-      estoqueLivro:estoque,
-      isbn:isbn,
-      categoria:categoria,
-      dataLancamento:dataLancamento,
-      autor:nomeAutor
-    }
-    api.post('livros/alterar/', data)
-    .then(response => {
-      toast.show('Sucefully updated!', {
-        type: 'success',
+  
+  const tryCriarLivro = async () => {
+    if (!nomeLivro || !preco || !estoque || !isbn || !categoria || !dataLancamento || !nomeAutor || !fotoLivro) {
+      toast.show("Fields can't be blank", {
+        type: 'warning',
         placement: 'top',
         duration: 4000,
         animationType: 'slide-in',
       });
-    })
-    .catch(error => {
-      toast.show('Fail to update the book', {
-        type: 'danger',
-        placement: 'top',
-        duration: 4000,
-        animationType: 'slide-in',
-      });
-    })
-  }
-
-  const requestPermissions = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: 'Permission to access photos',
-          message: 'We need access to your photos to select an image.',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
+    } else {
+        const formData = new FormData();
+    
+        formData.append('nomeLivro', nomeLivro);
+        formData.append('precoLivro', preco.toString());
+        formData.append('quantidadeEstoque', estoque.toString());
+        formData.append('isbn', isbn);
+        formData.append('categoria', categoria);
+        formData.append('dataLancamento', dataLancamento);
+        formData.append('nomeAutor', nomeAutor);
+        
+        if (fotoLivro) {
+          try {
+            const response = await fetch(fotoLivro);
+            const blob = await response.blob();
+        
+            const mimeType = blob.type;
+        
+            const extension = mimeType === 'image/png' ? 'png' : mimeType === 'image/jpeg' ? 'jpg' : '';
+        
+            if (extension) {
+              formData.append('file', blob, `${nomeLivro}.${extension}`);
+            } else {
+              throw new Error('Unsupported image type');
+            }
+          } catch (error) {
+            toast.show("Erro ao tentar converter a imagem", {
+              type: "danger",
+              placement: "top",
+              duration: 4000,
+              animationType: "slide-in",
+            });
+          }
         }
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can access the photos');
-        return true; // Permissions granted
-      } else {
-        console.log('Permission denied');
-        return false; // Permissions denied
-      }
-    } catch (err) {
-      console.warn(err);
-      return false; // Handle errors gracefully
-    }
-  };
+        api.post('livros/cadastrar/', formData, {
+          headers:{
+            "Content-Type": "multipart/form-data" 
+          }
+        })
+        .then(response => {
+          toast.show('Successfully created!', {
+            type: 'success',
+            placement: 'top',
+            duration: 2000,
+            animationType: 'slide-in',
+          });
+        })
+        .catch(error => {
+          console.log(error)
+          toast.show('Failed to create the book', {
+            type: 'danger',
+            placement: 'top',
+            duration: 2000,
+            animationType: 'slide-in',
+          });
+        });
+      };
+  }
+  
 
   const handleConfirmDate = (date: Date) => {
     const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
@@ -111,39 +125,36 @@ const CriarLivro = ({ navigation}) => {
   };
 
   const handlePickImage = async () => {
-    // Request permissions before launching the image picker
-    const hasPermission = await requestPermissions();
-    if (hasPermission) {
-      launchImageLibrary(
-        {
-          mediaType: 'photo',
-          includeBase64: false,
-        },
-        (response) => {
-          if (response.didCancel) {
-            console.log('User canceled image picker');
-          } else if (response.errorCode) {
-            console.log('ImagePicker Error: ', response.errorMessage);
-          } else {
-            // Handle the selected image, for example, logging the image URI
-            console.log(response.assets[0].uri); // You can use this URI as the selected image
-          }
-        }
-      );
-    } else {
-      console.log('Permission denied. Cannot pick image.');
+    try {      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [3, 4], 
+        quality: 1, 
+      });
+  
+      if (!result.canceled) {
+        setFotoLivro(result.assets[0].uri);
+      }
+    } catch (error) {
+      toast.show('Failed to pick an image. Try again.', {
+        type: 'danger',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
     }
   };
+  
 
   return (
     <SafeAreaView>
       <ScrollView>
         <View style={styles.bookContainer}>
-            <Pressable onPress={handlePickImage} style={styles.pickImageEmpty}>
+            <Pressable onPress={handlePickImage}>
                 {fotoLivro ? (
                     <Image source={{ uri: fotoLivro }} style={styles.bookImage} resizeMode="cover" />
                 ) : (
-                    <Text style={{color:'white', fontWeight:'900', fontSize:20}}>Pick an image</Text>
+                    <Text style={styles.pickImageEmpty}>Pick an image</Text>
                 )}
             </Pressable>      
 
@@ -238,7 +249,7 @@ const CriarLivro = ({ navigation}) => {
                   <View style={styles.modalContent}>
                     <Text>Confirma alteração de produto?</Text>
                     <View style={styles.modalButtons}>
-                      <Pressable style={styles.buttonConfirm} onPress={() => {setModal(false), tryEditarProduto()}}>
+                      <Pressable style={styles.buttonConfirm} onPress={() => {setModal(false), tryCriarLivro()}}>
                         <Text style={styles.textButton}>Sim</Text>
                       </Pressable>
                       <Pressable style={styles.buttonDeny} onPress={() => setModal(false)}>
@@ -260,7 +271,7 @@ const CriarLivro = ({ navigation}) => {
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 export default CriarLivro;
 
@@ -357,7 +368,7 @@ const styles = StyleSheet.create({
     color:'white'
   },
   buttonDeny:{
-    backgroundColor:'red    ',
+    backgroundColor:'red',
     borderRadius:15,
     padding:10,
     width:'45%',
@@ -370,6 +381,7 @@ const styles = StyleSheet.create({
     width:'100%',
     alignItems:'center',
     borderRadius:15,
-    margin:10
+    margin:10,
+    fontWeight:'900'
 }
 });

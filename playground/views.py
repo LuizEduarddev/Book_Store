@@ -53,49 +53,54 @@ def login_user(request):
         return HttpResponse(user.is_staff,status=200)
     else:
         return HttpResponse("Username or password incorrect",status=500)
-
+    
 @csrf_exempt
 def create_livro(request):
     if request.method == 'POST':
         if request.user.is_authenticated:
             try:
-                nome_livro = request.POST["nome_livro"]
-                preco_livro = request.POST["preco_livro"]
-                estoque_livro = request.POST["quantidade_estoque"]
-                isbn_livro = request.POST["isbn_livro"]
-                categoria = request.POST["categoria"]
-                nome_autor = request.POST["nome_autor"]
-                data_lancamento = request.POST["data_lancamento"]
-                foto_livro = request.FILES.get("foto_livro")
+                with transaction.atomic():
+                    nome_livro = request.POST.get("nomeLivro")
+                    preco_livro = request.POST.get("precoLivro")
+                    estoque_livro = request.POST.get("quantidadeEstoque")
+                    isbn_livro = request.POST.get("isbn")
+                    categoria = str(request.POST.get("categoria")).capitalize()
+                    nome_autor = request.POST.get("nomeAutor")
+                    data_lancamento = request.POST.get("dataLancamento")
+                    foto_livro = request.FILES.get("fotoLivro")  
+                    print(foto_livro)
+                    CATEGORY_DICT = dict(CATEGORIES)
+                    categoria_db = None
+                    for key, value in CATEGORY_DICT.items():
+                        if value == categoria:
+                            categoria_db = key
+                            break
 
-                CATEGORY_DICT = dict(CATEGORIES)
-                categoria_db = None
-                for key, value in CATEGORY_DICT.items():
-                    if value == categoria:
-                        categoria_db = key
-                        break
+                    if categoria_db is None:
+                        return HttpResponse('Categoria não encontrada.', status=406)
 
-                if categoria_db is None:
-                    return HttpResponse('Categoria não encontrada.', status=404)
+                    p = Livros(
+                        nome=nome_livro,
+                        preco=preco_livro,
+                        estoque=estoque_livro,
+                        isbn=isbn_livro,
+                        categoria=categoria_db,
+                        nome_autor=nome_autor,
+                        data_lancamento=data_lancamento,
+                        foto_livro=foto_livro
+                    )
+                    p.save()
 
-                p = Livros(
-                    nome=nome_livro,
-                    preco=preco_livro,
-                    estoque=estoque_livro,
-                    isbn=isbn_livro,
-                    categoria=categoria_db,
-                    nome_autor=nome_autor,
-                    data_lancamento=data_lancamento,
-                    foto_livro = foto_livro
-                )
-                p.save()
-                return HttpResponse(status=200)
+                    return HttpResponse(status=200)
+
             except Exception as e:
-                return HttpResponse(f'Falha ao tentar cadastrar o produto: {e}', status=400)
+                print(e)
+                return HttpResponse('Erro ao criar livro. Tente novamente.', status=400)
         else:
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não permitido. Use POST.', status=405)
+
 
 
 @csrf_exempt
@@ -508,7 +513,8 @@ def get_all_sales_data(request):
                 return JsonResponse(sales_data, safe=False, status=200)
 
             except Exception as e:
-                return HttpResponse(f"Erro ao buscar os dados de venda. {e}", status=500)
+                print(e)
+                return HttpResponse(status=500)
     else:
         return HttpResponse("Usuário não autorizado.", status=403)
     

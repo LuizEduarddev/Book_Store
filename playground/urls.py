@@ -6,6 +6,7 @@ urlpatterns = [
     path('auth/login/', views.login_user),
     path('auth/register/staff/', views.create_super_user),
     path('livros/alterar/', views.update_livro),
+    path('livros/cadastrar/', views.create_livro),
     path('livros/deletar/', views.deletar_livro),
     path('livros/get-all/', views.get_all_livros),
     path('livros/get/', views.get_livros_usuarios),
