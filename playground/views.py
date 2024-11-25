@@ -174,8 +174,33 @@ def get_livro_by_id(request):
     else:
         return HttpResponse('Método não suportado.', status=405)
 
+@csrf_exempt
+def get_livro_by_nome(request):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            try:
+                body = json.loads(request.body)
+                nome_livro = body.get('nome')
 
-
+                livros = Livros.objects.filter(nome__icontains = nome_livro)
+                livros_data = [
+                    {
+                        'id': str(livro.id),
+                        'nome': livro.nome,
+                        'preco': str(livro.preco),
+                        'estoque': livro.estoque,
+                        'imagem': request.build_absolute_uri(livro.foto_livro.url) 
+                    }
+                    for livro in livros
+                ]
+                return JsonResponse(livros_data, safe=False, status=200)
+            except Exception as e:
+                print(e)
+                return HttpResponse(status=400)
+        else:
+            return HttpResponse(status=403)
+    else:
+        return HttpResponse(status=405)
 
 @csrf_exempt
 def get_livro_by_categoria(request):
@@ -223,28 +248,44 @@ def update_livro(request):
     if request.method == 'POST':
         if request.user.is_authenticated:
             try:
-                id_livro = request.POST["id_livro"]
+                data = json.loads(request.body)  # Parse JSON payload
+                id_livro = data.get("id")
+                nome_livro = data.get("nomeLivro")
+                preco_livro = data.get("precoLivro")
+                estoque_livro = data.get("estoqueLivro")
+                isbn = data.get("isbn")
+                categoria_nome = data.get("categoria")
+                data_lancamento = data.get("dataLancamento")
+                autor = data.get("autor")
+
                 new_livro = Livros.objects.get(id=id_livro)
-                nome_livro = request.POST["nome_livro"]
-                preco_livro = request.POST["preco_livro"]
-                estoque_livro = request.POST["estoque_livro"]
-                isbn = request.POST["isbn"]
-                categoria_nome = request.POST["categoria"]
-                categoria_nome = request.POST["categoria"]
-                categoria_nome = request.POST["categoria"]
+
+                CATEGORY_DICT = dict(CATEGORIES)
+                categoria_db = None
+                for key, value in CATEGORY_DICT.items():
+                    if value == categoria_nome:
+                        categoria_db = key
+                        break
+
+                if categoria_db is None:
+                    return HttpResponse(status=406)
+
                 new_livro.nome = nome_livro
                 new_livro.preco = preco_livro
                 new_livro.estoque = estoque_livro
                 new_livro.isbn = isbn
-                new_livro.categoria = categoria_nome
+                new_livro.categoria = categoria_db
+                new_livro.data_lancamento = data_lancamento
+                new_livro.nome_autor = autor
                 new_livro.save()
                 return HttpResponse(status=200)
             except Exception as e:
-                return HttpResponse(f'Falha ao tentar alterar o livro: {e}', status=400)
+                print(e)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse('Usuário não autenticado.', status=403)
+            return HttpResponse(status=403)
     else:
-        return HttpResponse('Método não suportado.', status=405)
+        return HttpResponse(status=405)
     
 @csrf_exempt
 def deletar_livro(request):

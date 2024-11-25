@@ -4,19 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../../ApiConfigs/ApiRoute';
 import { useToast } from 'react-native-toast-notifications';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Import DateTimePickerModal
-
-type Livro = {
-  id: string;
-  nome: string;
-  preco: string;
-  estoque: number;
-  isbn: string;
-  categoria: string;
-  nome_autor: string;
-  data_lancamento: string;
-  foto_livro: string;
-};
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { launchImageLibrary } from 'react-native-image-picker'; 
+import { PermissionsAndroid } from 'react-native';
 
 function formatToBRL(number: string) {
   return new Intl.NumberFormat('pt-BR', {
@@ -38,11 +28,8 @@ const CATEGORIES = [
   { value: 'EDUCACIONAL', label: 'Educacional' },
 ];
 
-const EditLivro = ({ navigation, route }) => {
+const CriarLivro = ({ navigation}) => {
   const toast = useToast();
-  const { id } = route.params ? route.params : 0;
-
-  const [livro, setLivro] = useState<Livro>();
   
   const [nomeLivro, setNomeLivro] = useState('');
   const [estoque, setEstoque] = useState(0);
@@ -56,13 +43,8 @@ const EditLivro = ({ navigation, route }) => {
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [modal, setModal] = useState(false);
 
-  useEffect(() => {
-    fetchLivro();
-  }, []);
-
   const tryEditarProduto = async () => {
     const data = {
-      id:id,
       nomeLivro:nomeLivro,
       precoLivro:preco,
       estoqueLivro:estoque,
@@ -73,7 +55,6 @@ const EditLivro = ({ navigation, route }) => {
     }
     api.post('livros/alterar/', data)
     .then(response => {
-      fetchLivro();
       toast.show('Sucefully updated!', {
         type: 'success',
         placement: 'top',
@@ -91,32 +72,28 @@ const EditLivro = ({ navigation, route }) => {
     })
   }
 
-  const fetchLivro = async () => {
-    if (id === 0) navigation.goBack();
-    const data = { id };
-    api
-      .post('livros/get-by-id/', data)
-      .then((response) => {
-        const livroData = response.data;
-        setLivro(livroData);
-
-        setNomeLivro(livroData.nome);
-        setEstoque(livroData.estoque);
-        setPreco(livroData.preco);
-        setIsbn(livroData.isbn);
-        setCategoria(livroData.categoria);
-        setNomeAutor(livroData.nome_autor);
-        setDataLancamento(livroData.data_lancamento);
-        setFotoLivro(livroData.foto_livro);
-      })
-      .catch((error) => {
-        toast.show('Falha ao tentar buscar o livro', {
-          type: 'warning',
-          placement: 'top',
-          duration: 4000,
-          animationType: 'slide-in',
-        });
-      });
+  const requestPermissions = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Permission to access photos',
+          message: 'We need access to your photos to select an image.',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can access the photos');
+        return true; // Permissions granted
+      } else {
+        console.log('Permission denied');
+        return false; // Permissions denied
+      }
+    } catch (err) {
+      console.warn(err);
+      return false; // Handle errors gracefully
+    }
   };
 
   const handleConfirmDate = (date: Date) => {
@@ -133,23 +110,48 @@ const EditLivro = ({ navigation, route }) => {
     setDatePickerVisible(false);
   };
 
-  const renderLivro = () => {
-    if (livro) {
-      return (
+  const handlePickImage = async () => {
+    // Request permissions before launching the image picker
+    const hasPermission = await requestPermissions();
+    if (hasPermission) {
+      launchImageLibrary(
+        {
+          mediaType: 'photo',
+          includeBase64: false,
+        },
+        (response) => {
+          if (response.didCancel) {
+            console.log('User canceled image picker');
+          } else if (response.errorCode) {
+            console.log('ImagePicker Error: ', response.errorMessage);
+          } else {
+            // Handle the selected image, for example, logging the image URI
+            console.log(response.assets[0].uri); // You can use this URI as the selected image
+          }
+        }
+      );
+    } else {
+      console.log('Permission denied. Cannot pick image.');
+    }
+  };
+
+  return (
+    <SafeAreaView>
+      <ScrollView>
         <View style={styles.bookContainer}>
-          {livro.foto_livro && (
-            <Image
-              source={{ uri: livro.foto_livro }}
-              style={styles.bookImage}
-              resizeMode="cover"
-            />
-          )}
+            <Pressable onPress={handlePickImage} style={styles.pickImageEmpty}>
+                {fotoLivro ? (
+                    <Image source={{ uri: fotoLivro }} style={styles.bookImage} resizeMode="cover" />
+                ) : (
+                    <Text style={{color:'white', fontWeight:'900', fontSize:20}}>Pick an image</Text>
+                )}
+            </Pressable>      
 
           <View style={styles.inputContainer}>
             <Text>Nome do livro</Text>
             <TextInput
               style={styles.textInputStyle}
-              placeholder={livro.nome}
+              placeholder='Book name'
               placeholderTextColor={'gray'}
               value={nomeLivro}
               onChangeText={setNomeLivro}
@@ -159,7 +161,7 @@ const EditLivro = ({ navigation, route }) => {
             <Text>Estoque</Text>
             <TextInput
               style={styles.textInputStyle}
-              placeholder={livro.estoque.toString()}
+              placeholder='Stock'
               placeholderTextColor={'gray'}
               value={estoque.toString()}
               onChangeText={(text) => setEstoque(Number(text))}
@@ -170,7 +172,7 @@ const EditLivro = ({ navigation, route }) => {
             <Text>Preço</Text>
             <TextInput
               style={styles.textInputStyle}
-              placeholder={formatToBRL(livro.preco)}
+              placeholder='Price'
               placeholderTextColor={'gray'}
               value={preco}
               onChangeText={setPreco}
@@ -181,7 +183,7 @@ const EditLivro = ({ navigation, route }) => {
             <Text>ISBN</Text>
             <TextInput
               style={styles.textInputStyle}
-              placeholder={livro.isbn}
+              placeholder='ISBN'
               placeholderTextColor={'gray'}
               value={isbn}
               onChangeText={setIsbn}
@@ -189,10 +191,10 @@ const EditLivro = ({ navigation, route }) => {
             />
           </View>
           <View style={styles.inputContainer}>
-            <Text>Data de lançamento</Text>
+            <Text>Launch date</Text>
             <Pressable onPress={showDatePicker} style={styles.textInputStyle}>
               <Text style={{ color: dataLancamento ? 'black' : 'gray' }}>
-                {dataLancamento || livro.data_lancamento}
+                {dataLancamento || '01/01/1990'}
               </Text>
             </Pressable>
           </View>
@@ -216,7 +218,7 @@ const EditLivro = ({ navigation, route }) => {
             <Text>Autor</Text>
             <TextInput
               style={styles.textInputStyle}
-              placeholder={livro.nome_autor}
+              placeholder='Autor name'
               placeholderTextColor={'gray'}
               value={nomeAutor}
               onChangeText={setNomeAutor}
@@ -255,26 +257,12 @@ const EditLivro = ({ navigation, route }) => {
             onCancel={hideDatePicker}
           />
         </View>
-      );
-    } else {
-      return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Nada para mostrar no momento....</Text>
-        </View>
-      );
-    }
-  };
-
-  return (
-    <SafeAreaView>
-      <ScrollView>
-        <View style={styles.mainViewContainer}>{renderLivro()}</View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default EditLivro;
+export default CriarLivro;
 
 const styles = StyleSheet.create({
   mainViewContainer: {},
@@ -369,10 +357,19 @@ const styles = StyleSheet.create({
     color:'white'
   },
   buttonDeny:{
-    backgroundColor:'red',
+    backgroundColor:'red    ',
     borderRadius:15,
     padding:10,
     width:'45%',
     alignItems:'center'
-  }
+  },
+  pickImageEmpty:{
+    backgroundColor:'orange',
+    color:'white',
+    padding:30,
+    width:'100%',
+    alignItems:'center',
+    borderRadius:15,
+    margin:10
+}
 });

@@ -11,6 +11,7 @@ urlpatterns = [
     path('livros/get/', views.get_livros_usuarios),
     path('livros/get-by-categoria/', views.get_livro_by_categoria),
     path('livros/get-by-id/', views.get_livro_by_id),
+    path('livros/get-by-nome/', views.get_livro_by_nome),
     path('livros/categorias/', views.get_categorias),
     path('livros/vendidos/', views.get_all_sales_data),
     path('livros/vendidos/detalhes', views.get_book_order_data),
