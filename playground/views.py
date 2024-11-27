@@ -67,8 +67,7 @@ def create_livro(request):
                     categoria = str(request.POST.get("categoria")).capitalize()
                     nome_autor = request.POST.get("nomeAutor")
                     data_lancamento = request.POST.get("dataLancamento")
-                    foto_livro = request.FILES.get("fotoLivro")  
-                    print(foto_livro)
+                    foto_livro = request.FILES.get("fotoLivro") 
                     CATEGORY_DICT = dict(CATEGORIES)
                     categoria_db = None
                     for key, value in CATEGORY_DICT.items():
@@ -77,7 +76,7 @@ def create_livro(request):
                             break
 
                     if categoria_db is None:
-                        return HttpResponse('Categoria não encontrada.', status=406)
+                        return HttpResponse(status=406)
 
                     p = Livros(
                         nome=nome_livro,
@@ -95,12 +94,11 @@ def create_livro(request):
 
             except Exception as e:
                 print(e)
-                return HttpResponse('Erro ao criar livro. Tente novamente.', status=400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse('Usuário não autenticado.', status=403)
+            return HttpResponse(status=403)
     else:
-        return HttpResponse('Método não permitido. Use POST.', status=405)
-
+        return HttpResponse(status=405)
 
 
 @csrf_exempt

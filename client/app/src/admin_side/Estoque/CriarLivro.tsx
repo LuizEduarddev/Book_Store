@@ -1,4 +1,4 @@
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../../ApiConfigs/ApiRoute';
@@ -6,6 +6,7 @@ import { useToast } from 'react-native-toast-notifications';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as ImagePicker from 'expo-image-picker';
+import mime from "mime";
 
 function formatToBRL(number: string) {
   return new Intl.NumberFormat('pt-BR', {
@@ -51,63 +52,58 @@ const CriarLivro = ({ navigation}) => {
         animationType: 'slide-in',
       });
     } else {
-        const formData = new FormData();
-    
-        formData.append('nomeLivro', nomeLivro);
-        formData.append('precoLivro', preco.toString());
-        formData.append('quantidadeEstoque', estoque.toString());
-        formData.append('isbn', isbn);
-        formData.append('categoria', categoria);
-        formData.append('dataLancamento', dataLancamento);
-        formData.append('nomeAutor', nomeAutor);
-        
-        if (fotoLivro) {
-          try {
-            const response = await fetch(fotoLivro);
-            const blob = await response.blob();
-        
-            const mimeType = blob.type;
-        
-            const extension = mimeType === 'image/png' ? 'png' : mimeType === 'image/jpeg' ? 'jpg' : '';
-        
-            if (extension) {
-              formData.append('file', blob, `${nomeLivro}.${extension}`);
-            } else {
-              throw new Error('Unsupported image type');
-            }
-          } catch (error) {
-            toast.show("Erro ao tentar converter a imagem", {
-              type: "danger",
-              placement: "top",
-              duration: 4000,
-              animationType: "slide-in",
-            });
-          }
-        }
-        api.post('livros/cadastrar/', formData, {
-          headers:{
-            "Content-Type": "multipart/form-data" 
-          }
-        })
-        .then(response => {
-          toast.show('Successfully created!', {
-            type: 'success',
-            placement: 'top',
-            duration: 2000,
-            animationType: 'slide-in',
-          });
-        })
-        .catch(error => {
-          console.log(error)
-          toast.show('Failed to create the book', {
-            type: 'danger',
-            placement: 'top',
-            duration: 2000,
-            animationType: 'slide-in',
-          });
-        });
+      const formData = new FormData();
+  
+      formData.append('nomeLivro', nomeLivro);
+      formData.append('precoLivro', preco.toString());
+      formData.append('quantidadeEstoque', estoque.toString());
+      formData.append('isbn', isbn);
+      formData.append('categoria', categoria);
+      formData.append('dataLancamento', dataLancamento);
+      formData.append('nomeAutor', nomeAutor);
+      
+      const mimeToExtension = {
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+        'image/gif': '.gif',
+        'image/bmp': '.bmp',
+        'image/webp': '.webp',
       };
-  }
+      
+      const extension = mimeToExtension[mime.getType(fotoLivro)];
+      const fullFileName = nomeLivro + extension;
+      
+      formData.append("fotoLivro", {
+        uri: fotoLivro,
+        name: fullFileName,
+        type: mime.getType(fotoLivro)
+      } as any);
+
+      api.post('livros/cadastrar/', formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", 
+        },
+      })
+      .then(response => {
+        toast.show('Successfully created!', {
+          type: 'success',
+          placement: 'top',
+          duration: 2000,
+          animationType: 'slide-in',
+        });
+      })
+      .catch(error => {
+        toast.show('Failed to create the book', {
+          type: 'danger',
+          placement: 'top',
+          duration: 2000,
+          animationType: 'slide-in',
+        });
+      })
+    }
+  };
+  
+  
   
 
   const handleConfirmDate = (date: Date) => {
