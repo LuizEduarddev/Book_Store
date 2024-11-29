@@ -62,7 +62,7 @@ const RenderCategorias = ({navigation}) => {
                 keyExtractor={(item) => item}
                 renderItem={({ item: categoria }) => (
                   <View style={{ marginVertical: 10 }}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>{categoria}</Text>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, color:"orange" }}>{categoria}</Text>
                     <RenderLivros navigation={navigation} categoria={categoria} />
                   </View>
                 )}
@@ -72,7 +72,7 @@ const RenderCategorias = ({navigation}) => {
           } else {
             return (
               <View>
-                <Text>Nada para mostrar no momento....</Text>
+                <Text style={{fontSize: 18, marginLeft: 10}}>Nada para mostrar no momento....</Text>
               </View>
             );
           }

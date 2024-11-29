@@ -20,4 +20,5 @@ urlpatterns = [
     path('pedidos/get-all/', views.get_all_pedido),
     path('pedidos/get-by-user/', views.get_pedido_by_user),
     path('pedidos/get-by-id/', views.get_pedido_by_id),
+    path('athena/prompt', views.prompt_gemini)
 ]

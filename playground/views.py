@@ -9,7 +9,12 @@ from .utils.Categories import CATEGORIES
 from django.forms.models import model_to_dict
 from datetime import datetime
 from django.db.models import Sum
+from uuid import UUID
+import google.generativeai as genai
+from .utils.hot_functions import livrosToJson
 
+GOOGLE_KEY = "AIzaSyBt-avt5ErA1QZtaBxNiusmCmuYwcHVLEg"
+genai.configure(api_key=GOOGLE_KEY)
 
 @csrf_exempt
 def create_user(request):
@@ -266,7 +271,7 @@ def update_livro(request):
                 CATEGORY_DICT = dict(CATEGORIES)
                 categoria_db = None
                 for key, value in CATEGORY_DICT.items():
-                    if value == categoria_nome:
+                    if key == categoria_nome:
                         categoria_db = key
                         break
 
@@ -295,13 +300,12 @@ def deletar_livro(request):
     if request.method == 'DELETE':
         if request.user.is_authenticated:
             try:
-                data = json.loads(request.body)
-                id_livro = data.get("id_livro")
+                id_livro = request.headers.get('id')
                 livro = Livros.objects.get(id=id_livro)
                 livro.delete()
                 return HttpResponse(status=200)
             except Exception as e:
-                return HttpResponse(f'Falha ao tentar deletar o livro. {e}')
+                return HttpResponse(status=500)
 
 
 @csrf_exempt
@@ -519,37 +523,29 @@ def get_all_sales_data(request):
 @csrf_exempt 
 def get_book_order_data(request):
     if request.method == 'GET' and request.user.is_authenticated and request.user.is_staff:
-        book_id = request.headers.get('id')
+        book_id = UUID(request.headers.get('id'))
 
         if not book_id:
-            return JsonResponse({"error": "Book ID is required in the request header"}, status=400)
+            return JsonResponse(status=400)
 
         try:
-            # Try to retrieve the book using the given ID
             book = Livros.objects.get(id=book_id)
+            print(book)
         except Livros.DoesNotExist:
-            return JsonResponse({"error": "Book not found"}, status=404)
+            return JsonResponse(status=404)
 
-        # Query the Pedidos that contain this book
         pedidos = Pedidos.objects.filter(livros=book)
 
-        if not pedidos.exists():
-            return JsonResponse({"message": "No orders found for this book"}, status=404)
-
-        # Variables to track total earnings and total quantity sold
         total_earnings = 0
         total_books_sold = 0
 
         pedidos_data = []
         for pedido in pedidos:
-            # Query for the specific 'PedidoLivro' entries that link the book and this order
             pedido_livros = PedidoLivro.objects.filter(pedido=pedido, livro=book)
             for pedido_livro in pedido_livros:
-                # Calculate the total earnings for this book in this order
                 total_earnings += book.preco * pedido_livro.quantidade
                 total_books_sold += pedido_livro.quantidade
             
-            # Prepare the pedido data to include in the response
             pedido_info = {
                 "pedido_id": pedido.id,
                 "valor_total": str(pedido.valor_total),
@@ -563,7 +559,6 @@ def get_book_order_data(request):
             }
             pedidos_data.append(pedido_info)
 
-        # Prepare the response with the book data, associated orders, total earnings, and total books sold
         response_data = {
             "book": {
                 "id": book.id,
@@ -577,10 +572,9 @@ def get_book_order_data(request):
                 "foto_livro": request.build_absolute_uri(book.foto_livro.url),
             },
             "pedidos": pedidos_data,
-            "total_earnings": str(total_earnings),  # Return total earnings as a string (for consistent formatting)
+            "total_earnings": str(total_earnings),  
             "total_books_sold": total_books_sold,
         }
-
         return JsonResponse(response_data)
     else:
         return JsonResponse(status=400)
@@ -599,3 +593,26 @@ def get_categorias(request):
             return HttpResponse('Usuário não autenticado.', status=403)
     else:
         return HttpResponse('Método não suportado.', status=405)
+    
+@csrf_exempt
+def prompt_gemini(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+
+            livros = livrosToJson()
+
+            instruction = f"""
+                All questions you need to answer with this data {livros}
+            """
+                    
+            model = genai.GenerativeModel(
+                model_name="gemini-1.5-pro",
+                system_instruction=instruction
+            )
+
+            prompt = "i want to read a boof of science fiction, do you recommend me someone?"
+
+            result = model.generate_content(prompt)
+            return JsonResponse(result.text, status=200, safe=False)
+
+            

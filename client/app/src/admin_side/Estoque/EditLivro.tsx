@@ -52,6 +52,7 @@ const EditLivro = ({ navigation, route }) => {
   const [nomeAutor, setNomeAutor] = useState('');
   const [dataLancamento, setDataLancamento] = useState('');
   const [fotoLivro, setFotoLivro] = useState('');
+  const [modalProp, setModalProp] = useState('');
   
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [modal, setModal] = useState(false);
@@ -86,6 +87,31 @@ const EditLivro = ({ navigation, route }) => {
         type: 'danger',
         placement: 'top',
         duration: 4000,
+        animationType: 'slide-in',
+      });
+    })
+  }
+
+  const tryDeletarProduto = async () => {
+    api.delete('livros/deletar/', {
+      headers:{
+        id:id
+      }
+    })
+    .then(response => {
+      toast.show('Sucefully deleted', {
+        type: 'success',
+        placement: 'top',
+        duration: 2000,
+        animationType: 'slide-in',
+      });
+      navigation.goBack();
+    })
+    .catch(error => {
+      toast.show('Fail to delete the book', {
+        type: 'danger',
+        placement: 'top',
+        duration: 2000,
         animationType: 'slide-in',
       });
     })
@@ -132,6 +158,41 @@ const EditLivro = ({ navigation, route }) => {
   const hideDatePicker = () => {
     setDatePickerVisible(false);
   };
+
+  const renderModal = () => {
+    return(
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modal}
+          onRequestClose={() => setModal(false)}
+      >
+          <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                {modalProp === 'update' ? (
+                  <Text>Confirm book update?</Text>
+                ):(
+                  <Text>Confirm book delete?</Text>
+                )}
+                <View style={styles.modalButtons}>
+                  {modalProp === 'update' ? (
+                    <Pressable style={styles.buttonConfirm} onPress={() => {setModal(false), tryEditarProduto()}}>
+                      <Text style={styles.textButton}>Yes</Text>
+                    </Pressable>
+                  ):(
+                    <Pressable style={styles.buttonConfirm} onPress={() => {setModal(false), tryDeletarProduto()}}>
+                      <Text style={styles.textButton}>Yes</Text>
+                    </Pressable>
+                  )}
+                  <Pressable style={styles.buttonDeny} onPress={() => setModal(false)}>
+                    <Text style={styles.textButton}>No</Text>
+                  </Pressable>
+                </View>
+              </View>
+          </View>
+      </Modal>
+    );
+  }
 
   const renderLivro = () => {
     if (livro) {
@@ -222,31 +283,14 @@ const EditLivro = ({ navigation, route }) => {
               onChangeText={setNomeAutor}
             />
           </View>
-          <Pressable style={styles.updateButton} onPress={() => setModal(true)}>
+          <Pressable style={styles.updateButton} onPress={() => {setModal(true), setModalProp('update')}}>
             <Text style={{ fontSize: 16, color: 'white' }}>Save updates</Text>
           </Pressable>
+          <Pressable style={styles.deleteButton} onPress={() => {setModal(true), setModalProp('delete')}}>
+            <Text style={{ fontSize: 16, color: 'white' }}>Delete</Text>
+          </Pressable>
         
-          <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modal}
-              onRequestClose={() => setModal(false)}
-          >
-              <View style={styles.modalContainer}>
-                  <View style={styles.modalContent}>
-                    <Text>Confirma alteração de produto?</Text>
-                    <View style={styles.modalButtons}>
-                      <Pressable style={styles.buttonConfirm} onPress={() => {setModal(false), tryEditarProduto()}}>
-                        <Text style={styles.textButton}>Sim</Text>
-                      </Pressable>
-                      <Pressable style={styles.buttonDeny} onPress={() => setModal(false)}>
-                        <Text style={styles.textButton}>Não</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-              </View>
-          </Modal>
-        
+          {renderModal()}
 
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
@@ -374,5 +418,13 @@ const styles = StyleSheet.create({
     padding:10,
     width:'45%',
     alignItems:'center'
+  },
+  deleteButton:{
+    marginTop:10,
+    backgroundColor: 'red',
+    padding: 15,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
   }
 });

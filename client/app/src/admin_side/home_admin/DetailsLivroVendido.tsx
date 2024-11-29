@@ -49,7 +49,7 @@ const DetailsLivroVendido = ({ route, navigation }) => {
   const { id } = route.params;
   const toast = useToast();
   const [pedidoData, setPedidoData] = useState<BookOrderData>();
-  const [dataGraph, setDataGraph] = useState<any>();
+  const [dataGraph, setDataGraph] = useState<any>(null);
   const [loadingChartData, setLoadingChartData] = useState(true);
 
   useEffect(() => {
@@ -70,22 +70,24 @@ const DetailsLivroVendido = ({ route, navigation }) => {
         {
           const salesByDate = response.data.pedidos.reduce((acc, pedido) => {
             const { data_pedido, quantidade } = pedido;
-            acc[data_pedido] = (acc[data_pedido] || 0) + Math.floor(quantidade); // Sum quantities for the same date
+            acc[data_pedido] = (acc[data_pedido] || 0) + Math.floor(quantidade); 
             return acc;
           }, {});
-    
-          const labels = Object.keys(salesByDate);
-          const quantities = Object.values(salesByDate);
-          const dataGraph = {
-            labels: labels,
-            datasets: [
-              {
-                data: quantities,
-                color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
-              }
-            ],
+          if (Object.keys(salesByDate).length !== 0)
+          {
+            const labels = Object.keys(salesByDate);
+            const quantities = Object.values(salesByDate);
+            const dataGraph = {
+              labels: labels,
+              datasets: [
+                {
+                  data: quantities,
+                  color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+                }
+              ],
+            }
+            setDataGraph(dataGraph)
           }
-          setDataGraph(dataGraph)
         }
         catch(error)
         {
@@ -181,7 +183,7 @@ const DetailsLivroVendido = ({ route, navigation }) => {
 
       <View>
         {
-          loadingChartData === false ? (
+          loadingChartData === false && dataGraph !== null?(
             <LineChart
               data={dataGraph}
               width={Dimensions.get("window").width - 15 }
@@ -209,8 +211,12 @@ const DetailsLivroVendido = ({ route, navigation }) => {
                 borderRadius: 16
               }}
             />
-          ):(
+          ): loadingChartData ? (
             <ActivityIndicator size="large" color="#6200EE" />
+          ) : dataGraph === null ?(
+            <></>
+          ) : (
+            <></>
           )
         }
       </View>
