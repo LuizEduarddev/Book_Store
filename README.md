@@ -4,7 +4,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/LuizEduarddev/Book_Store">
     <img src="https://www.catconworldwide.com/wp-content/uploads/2018/04/reading-498102.jpg" alt="Logo" width="600" height="300">
   </a>
 
@@ -47,7 +47,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![Screen_Recording_20241130_161327_ExpoGo-ezgif com-gif-to-mp4-converter](https://github.com/user-attachments/assets/7b2f0e44-dfe8-4ec4-81e5-b328cda93bed)
 
 This project was made for my Python discipline at Roma3!
 The idea it's to find the ideal book for everyone and everywhere!
