@@ -82,12 +82,7 @@ WSGI_APPLICATION = 'Projeto_Final.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  
-        'NAME': 'projeto_roma',                    
-        'USER': 'postgres',                        
-        'PASSWORD': '1234',                        
-        'HOST': 'localhost',                     
-        'PORT': '5432',                           
+        'your_database_access'                        
     }
 }
 

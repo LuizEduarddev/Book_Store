@@ -13,7 +13,7 @@ from uuid import UUID
 import google.generativeai as genai
 from .utils.hot_functions import livrosToJson
 
-GOOGLE_KEY = "AIzaSyBt-avt5ErA1QZtaBxNiusmCmuYwcHVLEg"
+GOOGLE_KEY = "your_api_key"
 genai.configure(api_key=GOOGLE_KEY)
 
 @csrf_exempt
