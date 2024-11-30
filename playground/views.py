@@ -32,19 +32,16 @@ def create_user(request):
     
 @csrf_exempt
 def create_super_user(request):
-    if request.user.is_authenticated and request.user.is_staff == True:
-        try:
-            username = request.POST["username"]
-            password = request.POST["password"]
+    try:
+        username = request.POST["username"]
+        password = request.POST["password"]
 
-            user = User.objects.create_superuser(username=username, password=password)
-            user.save()
+        user = User.objects.create_superuser(username=username, password=password)
+        user.save()
 
-            return HttpResponse(status=200)
-        except Exception as e:
-            return HttpResponse(f"{e}",status=500)
-    else:
-        return HttpResponse(status=400)
+        return HttpResponse(status=200)
+    except Exception as e:
+        return HttpResponse(f"{e}",status=500)
 
 
 @csrf_exempt
