@@ -7,8 +7,7 @@ import Register from "./app/src/cliente_side/RegisterUser/Register";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import LivroDetails from "./app/src/cliente_side/HomePage/LivroDetails";
 import Carrinho from "./app/src/cliente_side/CarrinhoPage/Carrinho";
-import Icon from 'react-native-ico-shopping';
-import FontAwesone from 'react-native-vector-icons/FontAwesome6';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'; 
 import HomeAdmin from "./app/src/admin_side/home_admin/HomeAdmin";
 import PedidosNavigator from "./app/src/utils/PedidosNavigator";
 import DetailsPedido from "./app/src/cliente_side/PedidosPage/DetailsPedido";
@@ -18,6 +17,8 @@ import EditLivro from "./app/src/admin_side/Estoque/EditLivro";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CriarLivro from "./app/src/admin_side/Estoque/CriarLivro";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,38 +29,37 @@ function BottomTabNavigator() {
       <Tab.Screen
         name="TabHome"
         component={Home}
-        options={{ 
+        options={{
           headerShown: false,
-          tabBarIcon: (tabInfo) => {
-            return(
-              <FontAwesone name="house" size={25}/>
-            );
-          }
-        }} 
+          tabBarIcon: ({ color, size }) => (
+            <SimpleLineIcons name="home" size={25} color={'orange'} />
+          ),
+          tabBarLabel: 'Home', 
+        }}
       />
+
       <Tab.Screen
         name="Carrinho"
         component={Carrinho}
-        options={{ 
+        options={{
           headerShown: false,
-          tabBarIcon: (tabInfo) => {
-            return(
-              <Icon name="shopping-cart" height="25" width="25" />
-            );
-          }
-        }} 
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="cart" size={30} color={'orange'} />
+          ),
+          tabBarLabel: 'Cart', 
+        }}
       />
+
       <Tab.Screen
         name="Pedidos"
         component={PedidosNavigator}
-        options={{ 
+        options={{
           headerShown: false,
-          tabBarIcon: (tabInfo) => {
-            return(
-              <FontAwesone name="dolly" size={25}/>
-            );
-          }
-        }} 
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="gift" size={30} color={'orange'} />  
+          ),
+          tabBarLabel: 'Orders', 
+        }}
       />
     </Tab.Navigator>
   );

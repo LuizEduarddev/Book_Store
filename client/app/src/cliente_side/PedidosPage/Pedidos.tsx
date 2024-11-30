@@ -1,27 +1,37 @@
-import { SafeAreaView, StyleSheet, Text, View, Image, StatusBar, Pressable, FlatList, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import React, { useState } from 'react';
-import api from '../../../ApiConfigs/ApiRoute';
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  StatusBar,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { useToast } from 'react-native-toast-notifications';
 import { useFocusEffect } from '@react-navigation/native';
+import api from '../../../ApiConfigs/ApiRoute';
 
+type GroupedPedidos = Record<string, Pedidos[]>;
+type PedidosProps = { pedidos: GroupedPedidos };
 type LivroProp = { livro: Livros };
-type PedidoProp = { orders: Pedidos[] };
 
 type Livros = {
-  id: string,
-  nome: string,
-  preco: number,
-  quantidade: number,
-  imagemLivro: string
+  id: string;
+  nome: string;
+  preco: number;
+  quantidade: number;
+  imagemLivro: string;
 };
 
 type Pedidos = {
-  id: string,
-  valorTotal: number,
-  dataPedido: string,
-  horaPedido: string,
-  statusPedido: boolean,
-  livros: Livros[],
+  id: string;
+  valorTotal: number;
+  dataPedido: string;
+  horaPedido: string;
+  statusPedido: boolean;
+  livros: Livros[];
 };
 
 function formatToBRL(number) {
@@ -31,7 +41,7 @@ function formatToBRL(number) {
   }).format(Number(number));
 }
 
-const Pedidos = ({navigation}) => {
+const Pedidos = ({ navigation }) => {
   const toast = useToast();
   const [pedidos, setPedidos] = useState<Pedidos[]>([]);
   const [activeTab, setActiveTab] = useState('On Shipping');
@@ -44,65 +54,69 @@ const Pedidos = ({navigation}) => {
   );
 
   const fetchPedidos = async () => {
-    api.get('/pedidos/get-by-user/')
-      .then(response => {
+    api
+      .get('/pedidos/get-by-user/')
+      .then((response) => {
         if (response.status === 200) {
           if (Array.isArray(response.data)) setPedidos(response.data);
         } else {
-          toast.show("Falha ao tentar buscar os pedidos", {
-            type: "warning",
-            placement: "top",
+          toast.show('Failed to fetch orders', {
+            type: 'warning',
+            placement: 'top',
             duration: 1000,
-            animationType: "slide-in",
+            animationType: 'slide-in',
           });
         }
       })
-      .catch(error => {
-        toast.show("Falha ao tentar buscar os pedidos", {
-          type: "warning",
-          placement: "top",
+      .catch((error) => {
+        toast.show('Failed to fetch orders', {
+          type: 'warning',
+          placement: 'top',
           duration: 1000,
-          animationType: "slide-in",
+          animationType: 'slide-in',
         });
       });
   };
 
   const RenderLivros = ({ livro }: LivroProp) => (
-    <View style={styles.containerLivro}>
-      <Image source={{ uri: livro.imagemLivro }} style={styles.livroImagem} />
-      <View>
-        <Text style={styles.livroNome}>{livro.nome}</Text>
-        <Text style={styles.livroPreco}>{formatToBRL(livro.preco * livro.quantidade)} x {livro.quantidade}</Text>
+    <View style={styles.bookCard}>
+      {livro.imagemLivro && (
+        <Image source={{ uri: livro.imagemLivro }} style={styles.livroImagem} />
+      )}
+      <View style={styles.bookInfo}>
+        <Text style={styles.bookTitle}>{livro.nome}</Text>
+        <Text style={styles.bookPrice}>
+          {formatToBRL(livro.preco * livro.quantidade)} x {livro.quantidade}
+        </Text>
       </View>
     </View>
   );
 
-  const RenderPedidos = ({ orders }: PedidoProp) => (
+  const RenderPedidos = ({ pedidos }: PedidosProps) => (
     <View>
-      {orders.map((pedido) => (
-        <View key={pedido.id} style={styles.pedidoContainer}>
-          <View style={styles.pedidoInformation}>
-            <View style={styles.pedidoTopInformation}>
-              <Text style={styles.statusText}>Ordered on {pedido.dataPedido}</Text>
-              <Text style={styles.statusText}>
-                {pedido.statusPedido ? 'Arrived' : 'In preparation'}
-              </Text>
+      {Object.entries(pedidos).map(([date, pedidosForDate]) => (
+        <View key={date}>
+          <View style={styles.dateHeader}>
+            <Text style={styles.dateText}>{date}</Text>
+          </View>
+          {pedidosForDate.map((pedido) => (
+            <View key={pedido.id} style={styles.pedidoContainer}>
+              {pedido.livros.map((livro) => (
+                <RenderLivros key={livro.id} livro={livro} />
+              ))}
+              <View style={styles.pedidoFooter}>
+                <Text style={styles.totalText}>
+                  Total: {formatToBRL(pedido.valorTotal)}
+                </Text>
+                <TouchableOpacity
+                  style={styles.detailsButton}
+                  onPress={() => navigation.navigate('PedidoDetails', { id: pedido.id })}
+                >
+                  <Text style={styles.detailsButtonText}>View Details</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <FlatList
-              data={pedido.livros}
-              horizontal
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => <RenderLivros livro={item} />}
-              showsHorizontalScrollIndicator={false}
-              nestedScrollEnabled
-            />
-          </View>
-          <View style={styles.containerPrecoDetalhes}>
-            <Text style={styles.valorTotalText}>{formatToBRL(pedido.valorTotal)} ({pedido.livros.length} items)</Text>
-            <Pressable style={styles.buttomDetails} onPress={() => navigation.navigate('PedidoDetails', { id: pedido.id })}>
-              <Text style={styles.detailsText}>Details</Text>
-            </Pressable>
-          </View>
+          ))}
         </View>
       ))}
     </View>
@@ -111,11 +125,28 @@ const Pedidos = ({navigation}) => {
   const renderTab = () => {
     if (pedidos && pedidos.length > 0) {
       const pedidosFilter = pedidos.filter((pedido) =>
-        activeTab === 'On Shipping' ? !pedido.statusPedido : activeTab === 'Arrived' ? pedido.statusPedido : false
+        activeTab === 'On Shipping'
+          ? !pedido.statusPedido
+          : activeTab === 'Arrived'
+          ? pedido.statusPedido
+          : false
       );
-      return pedidosFilter.length > 0 ? <RenderPedidos orders={pedidosFilter} /> : <Text style={styles.noDataText}>Nada para ser mostrado</Text>;
+
+      const pedidosByDate = pedidosFilter.reduce((group, pedido) => {
+        if (!group[pedido.dataPedido]) {
+          group[pedido.dataPedido] = [];
+        }
+        group[pedido.dataPedido].push(pedido);
+        return group;
+      }, {} as Record<string, Pedidos[]>);
+
+      if (pedidosFilter.length > 0) {
+        return <RenderPedidos pedidos={pedidosByDate} />;
+      } else {
+        return <Text style={styles.noDataText}>No orders to show</Text>;
+      }
     } else {
-      return <Text style={styles.noDataText}>Nenhum pedido ainda? :c</Text>;
+      return <Text style={styles.noDataText}>No orders yet?</Text>;
     }
   };
 
@@ -125,16 +156,24 @@ const Pedidos = ({navigation}) => {
         {['On Shipping', 'Arrived', 'Cancelled'].map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tabButton, activeTab === tab && styles.activeTab]}
+            style={[
+              styles.tabButton,
+              activeTab === tab && styles.activeTabButton,
+            ]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
-      <ScrollView style={{ flex: 1 }}>
-        {renderTab()}
-      </ScrollView>
+      <ScrollView style={styles.scrollView}>{renderTab()}</ScrollView>
     </SafeAreaView>
   );
 };
@@ -145,124 +184,106 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: StatusBar.currentHeight,
-    backgroundColor: '#f2f2f2'
+    backgroundColor: '#F8F9FA',
   },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    elevation: 2,
+    borderBottomColor: '#ddd',
+    elevation: 3,
   },
   tabButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  activeTab: {
-    backgroundColor: 'orange',
-    elevation: 4,
+  activeTabButton: {
+    borderBottomWidth: 3,
+    borderBottomColor: '#FF6B35',
   },
   tabText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: '#666',
   },
   activeTabText: {
-    color: 'white',
+    color: '#FF6B35',
+    fontWeight: 'bold',
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  dateHeader: {
+    padding: 15,
+    backgroundColor: '#FF6B35',
+    borderRadius: 5,
+    marginTop: 15,
+  },
+  dateText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   pedidoContainer: {
-    margin: 10,
-    borderColor: '#FFA500',
-    borderWidth: 1,
-    borderRadius: 15,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginVertical: 10,
+    padding: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 5,
     elevation: 5,
   },
-  pedidoInformation: {
-    margin: 10,
-    padding: 10,
-  },
-  pedidoTopInformation: {
+  bookCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statusText: {
-    color: '#FFA500',
-    fontWeight: '500',
-  },
-  containerLivro: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    marginVertical: 5,
-    marginHorizontal: '3%',
-    backgroundColor: '#FFA500',
-    borderRadius: 10,
-  },
-  containerPrecoDetalhes: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFA500',
-    padding: 10,
-    borderBottomEndRadius: 15,
-    borderBottomStartRadius: 15,
+    marginBottom: 10,
   },
   livroImagem: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     borderRadius: 8,
     marginRight: 10,
   },
-  livroNome: {
-    color: 'white',
+  bookInfo: {
+    justifyContent: 'center',
+  },
+  bookTitle: {
+    fontSize: 14,
     fontWeight: 'bold',
+    color: '#333',
   },
-  livroPreco: {
-    color: 'white',
+  bookPrice: {
+    fontSize: 13,
+    color: '#666',
   },
-  valorTotalText: {
-    color: 'white',
+  pedidoFooter: {
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalText: {
+    fontSize: 16,
     fontWeight: 'bold',
+    color: '#FF6B35',
   },
-  buttomDetails: {
-    backgroundColor: '#ff6b35',
-    borderRadius: 30,
+  detailsButton: {
+    backgroundColor: '#FF6B35',
+    borderRadius: 20,
     paddingVertical: 5,
     paddingHorizontal: 15,
   },
-  detailsText: {
-    color: 'white',
-    fontWeight: '600',
+  detailsButtonText: {
+    color: '#fff',
+    fontSize: 14,
   },
   noDataText: {
     textAlign: 'center',
-    color: '#8E8E93',
+    color: '#888',
     marginVertical: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-  },
-  modalContent: {
-      width: '90%',
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 20,
-      shadowColor: '#000',
-      shadowOffset: {
-          width: 0,
-          height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
+    fontSize: 16,
   },
 });

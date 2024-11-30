@@ -598,21 +598,29 @@ def get_categorias(request):
 def prompt_gemini(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-
+            
+            prompt = request.headers.get('prompt')
             livros = livrosToJson()
 
             instruction = f"""
                 All questions you need to answer with this data {livros}
-            """
+                When you recommend a book, dont give the all book informations
+                only the name, but with a phrase before
+                sometimes you answer like this
+                the book always need to be like this
+                *book_name*
+                the answerd needs to have a phrase before
+                also, the answers needs to be in a json format, like this (if has a book of course)
+                text:text,
+                id_book: id_book
+            """ 
                     
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-pro",
+                model_name="gemini-1.5-flash-8b",
                 system_instruction=instruction
             )
 
-            prompt = "i want to read a boof of science fiction, do you recommend me someone?"
-
-            result = model.generate_content(prompt)
-            return JsonResponse(result.text, status=200, safe=False)
+            response = model.generate_content(prompt)
+            return JsonResponse(response.text, status=200, safe=False)
 
             
